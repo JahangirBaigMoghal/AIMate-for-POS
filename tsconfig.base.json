@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@aimate/shared": ["packages/shared/src/index.ts"],
+      "@aimate/domain": ["packages/domain/src/index.ts"],
+      "@aimate/foodhub": ["packages/foodhub/src/index.ts"],
+      "@aimate/rag": ["packages/rag/src/index.ts"],
+      "@aimate/datastore": ["packages/datastore/src/index.ts"],
+      "@aimate/payments": ["packages/payments/src/index.ts"],
+      "@aimate/voice-tools": ["packages/voice-tools/src/index.ts"],
+      "@aimate/telephony": ["packages/telephony/src/index.ts"]
+    }
+  }
+}

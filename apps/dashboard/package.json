@@ -1,0 +1,15 @@
+{
+  "name": "@aimate/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@aimate/rag": "0.1.0",
+    "@aimate/shared": "0.1.0"
+  }
+}

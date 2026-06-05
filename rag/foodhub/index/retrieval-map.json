@@ -1,0 +1,1761 @@
+{
+  "endpoint:GET /v1/auth/authorize": {
+    "type": "endpoint",
+    "tag": "Auth API",
+    "method": "GET",
+    "path": "/v1/auth/authorize",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:POST /v1/auth/token": {
+    "type": "endpoint",
+    "tag": "Auth API",
+    "method": "POST",
+    "path": "/v1/auth/token",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "TokenRequest",
+      "TokenResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/coupons": {
+    "type": "endpoint",
+    "tag": "Coupons API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/coupons",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "couponListResponse"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/coupons": {
+    "type": "endpoint",
+    "tag": "Coupons API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/coupons",
+    "referencedSchemas": [
+      "CouponCreateResponse",
+      "CouponEntity",
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse409",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:DELETE /v1/stores/{storeId}/coupons/{couponId}": {
+    "type": "endpoint",
+    "tag": "Coupons API",
+    "method": "DELETE",
+    "path": "/v1/stores/{storeId}/coupons/{couponId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/coupons/bulk": {
+    "type": "endpoint",
+    "tag": "Coupons API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/coupons/bulk",
+    "referencedSchemas": [
+      "BulkCreateCouponsRequest",
+      "CouponBulkCreateResponse",
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals:part-1": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals",
+    "referencedSchemas": [
+      "DealsListResponse",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals:part-2": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals",
+    "referencedSchemas": [
+      "DealsListResponse",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/deals:part-1": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/deals",
+    "referencedSchemas": [
+      "CreateDealsRequest",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/deals:part-2": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/deals",
+    "referencedSchemas": [
+      "CreateDealsRequest",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:DELETE /v1/stores/{storeId}/deals/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "DELETE",
+    "path": "/v1/stores/{storeId}/deals/{id}",
+    "referencedSchemas": [
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals/{id}:part-1": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals/{id}",
+    "referencedSchemas": [
+      "DealsResponse",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals/{id}:part-2": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals/{id}",
+    "referencedSchemas": [
+      "DealsResponse",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/deals/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/deals/{id}",
+    "referencedSchemas": [
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals/discount/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals/discount/{id}",
+    "referencedSchemas": [
+      "ErrorResponse404",
+      "discountResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/deals/discount/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/deals/discount/{id}",
+    "referencedSchemas": [
+      "DealsEntity",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals/meals/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals/meals/{id}",
+    "referencedSchemas": [
+      "ErrorResponse404",
+      "mealsResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/deals/meals/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/deals/meals/{id}",
+    "referencedSchemas": [
+      "DealUpdateMealEntity",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals/n-for-n/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals/n-for-n/{id}",
+    "referencedSchemas": [
+      "ErrorResponse404",
+      "NForNDealsResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/deals/n-for-n/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/deals/n-for-n/{id}",
+    "referencedSchemas": [
+      "DealUpdateNForNEntity",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/deals/n-for-price-n/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/deals/n-for-price-n/{id}",
+    "referencedSchemas": [
+      "ErrorResponse404",
+      "NForPriceNDealsResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/deals/n-for-price-n/{id}": {
+    "type": "endpoint",
+    "tag": "Deals API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/deals/n-for-price-n/{id}",
+    "referencedSchemas": [
+      "DealUpdateNForPriceNEntity",
+      "ErrorResponse404"
+    ]
+  },
+  "endpoint:DELETE /v1/stores/{storeId}/orders/{id}/driver": {
+    "type": "endpoint",
+    "tag": "Driver API",
+    "method": "DELETE",
+    "path": "/v1/stores/{storeId}/orders/{id}/driver",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/orders/{id}/driver": {
+    "type": "endpoint",
+    "tag": "Driver API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/orders/{id}/driver",
+    "referencedSchemas": [
+      "DriverLocationEntity",
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse409",
+      "ErrorResponse429",
+      "assignDriverResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu:part-1": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu:part-2": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu:part-3": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/menu:part-1": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/menu",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "UpdateMenuRequest"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/menu:part-2": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/menu",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "UpdateMenuRequest"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/menu:part-3": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/menu",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "UpdateMenuRequest"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu/category/{categoryId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu/category/{categoryId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "menuCategoryResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/menu/category/{categoryId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/menu/category/{categoryId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuCategoryPutEntity"
+    ]
+  },
+  "endpoint:DELETE /v1/stores/{storeId}/menu/item/{itemId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "DELETE",
+    "path": "/v1/stores/{storeId}/menu/item/{itemId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu/item/{itemId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu/item/{itemId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuItemResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/menu/item/{itemId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/menu/item/{itemId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuItemUpdateEntity"
+    ]
+  },
+  "endpoint:DELETE /v1/stores/{storeId}/menu/modifier/{modifierId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "DELETE",
+    "path": "/v1/stores/{storeId}/menu/modifier/{modifierId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu/modifier/{modifierId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu/modifier/{modifierId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuModifierResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/menu/modifier/{modifierId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/menu/modifier/{modifierId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuModifierUpdateEntity"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu/modifierGroup/{modifierGroupId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu/modifierGroup/{modifierGroupId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "menuModifierGroupResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/menu/subcategory/{subcategoryId}": {
+    "type": "endpoint",
+    "tag": "Menu API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/menu/subcategory/{subcategoryId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "MenuSubCategoryResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/orders:part-1": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/orders",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "ListOrdersResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/orders:part-2": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/orders",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "ListOrdersResponse"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/orders:part-1": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/orders",
+    "referencedSchemas": [
+      "CreateOrderEntity",
+      "CreateOrderResponse",
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/orders:part-2": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/orders",
+    "referencedSchemas": [
+      "CreateOrderEntity",
+      "CreateOrderResponse",
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/orders/{id}:part-1": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/orders/{id}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "OrderByIdResponse"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/orders/{id}:part-2": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/orders/{id}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "OrderByIdResponse"
+    ]
+  },
+  "endpoint:PATCH /v1/stores/{storeId}/orders/{id}:part-1": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "PATCH",
+    "path": "/v1/stores/{storeId}/orders/{id}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "PatchOrderEntity"
+    ]
+  },
+  "endpoint:PATCH /v1/stores/{storeId}/orders/{id}:part-2": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "PATCH",
+    "path": "/v1/stores/{storeId}/orders/{id}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "PatchOrderEntity"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/orders/{id}/amend": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/orders/{id}/amend",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "OrderReplaceEntity"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/orders/{id}/cancel": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/orders/{id}/cancel",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "OrderCancellationRequest"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/orders/{id}/refund": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/orders/{id}/refund",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "OrderRefundRequest",
+      "RefundOrderResponse"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/orders/{id}/status": {
+    "type": "endpoint",
+    "tag": "Orders API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/orders/{id}/status",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "UpdateOrderStatusRequest"
+    ]
+  },
+  "endpoint:POST /v1/stores": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "POST",
+    "path": "/v1/stores",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "ResellerOnboardResponseModel",
+      "resellerOnboardRequest"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "StoreByIdResponse"
+    ]
+  },
+  "endpoint:PATCH /v1/stores/{storeId}": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "PATCH",
+    "path": "/v1/stores/{storeId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "patchResellerRequest"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/delivery-zones": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/delivery-zones",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "UpdateDeliveryZones"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/opening-hours": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/opening-hours",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "StoreHoursResponse"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/opening-hours": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/opening-hours",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse429",
+      "UpdateStoreHoursRequest"
+    ]
+  },
+  "endpoint:GET /v1/stores/{storeId}/sections": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "GET",
+    "path": "/v1/stores/{storeId}/sections",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "kitchenSectionResponse"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/sections": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/sections",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "KitchenSectionEntity"
+    ]
+  },
+  "endpoint:DELETE /v1/stores/{storeId}/sections/{sectionId}": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "DELETE",
+    "path": "/v1/stores/{storeId}/sections/{sectionId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429"
+    ]
+  },
+  "endpoint:PUT /v1/stores/{storeId}/sections/{sectionId}": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "PUT",
+    "path": "/v1/stores/{storeId}/sections/{sectionId}",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "KitchenSectionEntity"
+    ]
+  },
+  "endpoint:POST /v1/stores/{storeId}/status": {
+    "type": "endpoint",
+    "tag": "Store API",
+    "method": "POST",
+    "path": "/v1/stores/{storeId}/status",
+    "referencedSchemas": [
+      "ErrorResponse400",
+      "ErrorResponse401",
+      "ErrorResponse403",
+      "ErrorResponse404",
+      "ErrorResponse429",
+      "StoreStatusEntity"
+    ]
+  },
+  "schema:AdditionalDiscountsEntity": {
+    "type": "schema",
+    "name": "AdditionalDiscountsEntity",
+    "referencedSchemas": []
+  },
+  "schema:assignDriverResponse": {
+    "type": "schema",
+    "name": "assignDriverResponse",
+    "referencedSchemas": [
+      "DriverLocationEntity"
+    ]
+  },
+  "schema:BulkCreateCouponsRequest": {
+    "type": "schema",
+    "name": "BulkCreateCouponsRequest",
+    "referencedSchemas": [
+      "CouponEntity"
+    ]
+  },
+  "schema:ChargesEntity": {
+    "type": "schema",
+    "name": "ChargesEntity",
+    "referencedSchemas": []
+  },
+  "schema:CouponBulkCreateResponse": {
+    "type": "schema",
+    "name": "CouponBulkCreateResponse",
+    "referencedSchemas": []
+  },
+  "schema:CouponCreateResponse": {
+    "type": "schema",
+    "name": "CouponCreateResponse",
+    "referencedSchemas": []
+  },
+  "schema:CouponEntity": {
+    "type": "schema",
+    "name": "CouponEntity",
+    "referencedSchemas": []
+  },
+  "schema:couponListResponse": {
+    "type": "schema",
+    "name": "couponListResponse",
+    "referencedSchemas": [
+      "CouponRowEntity"
+    ]
+  },
+  "schema:CouponRowEntity": {
+    "type": "schema",
+    "name": "CouponRowEntity",
+    "referencedSchemas": []
+  },
+  "schema:CreateDealsRequest": {
+    "type": "schema",
+    "name": "CreateDealsRequest",
+    "referencedSchemas": [
+      "DealEntity"
+    ]
+  },
+  "schema:CreateOrderEntity:part-1": {
+    "type": "schema",
+    "name": "CreateOrderEntity",
+    "referencedSchemas": []
+  },
+  "schema:CreateOrderEntity:part-2": {
+    "type": "schema",
+    "name": "CreateOrderEntity",
+    "referencedSchemas": []
+  },
+  "schema:CreateOrderResponse": {
+    "type": "schema",
+    "name": "CreateOrderResponse",
+    "referencedSchemas": []
+  },
+  "schema:CustomerEntity": {
+    "type": "schema",
+    "name": "CustomerEntity",
+    "referencedSchemas": []
+  },
+  "schema:DealDiscountEntity": {
+    "type": "schema",
+    "name": "DealDiscountEntity",
+    "referencedSchemas": [
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealEntity": {
+    "type": "schema",
+    "name": "DealEntity",
+    "referencedSchemas": [
+      "DealDiscountEntity",
+      "DealMealsEntity",
+      "DealNForNEntity",
+      "DealNForPriceNEntity"
+    ]
+  },
+  "schema:DealGetDiscountEntity": {
+    "type": "schema",
+    "name": "DealGetDiscountEntity",
+    "referencedSchemas": [
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealGetNForNEntity": {
+    "type": "schema",
+    "name": "DealGetNForNEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealGetNForPriceNEntity": {
+    "type": "schema",
+    "name": "DealGetNForPriceNEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealMealsEntity": {
+    "type": "schema",
+    "name": "DealMealsEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealNForNEntity": {
+    "type": "schema",
+    "name": "DealNForNEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealNForPriceNEntity": {
+    "type": "schema",
+    "name": "DealNForPriceNEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealsEntity": {
+    "type": "schema",
+    "name": "DealsEntity",
+    "referencedSchemas": [
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealsListResponse": {
+    "type": "schema",
+    "name": "DealsListResponse",
+    "referencedSchemas": [
+      "DealEntity"
+    ]
+  },
+  "schema:DealsResponse": {
+    "type": "schema",
+    "name": "DealsResponse",
+    "referencedSchemas": [
+      "DealEntity"
+    ]
+  },
+  "schema:DealUpdateMealEntity": {
+    "type": "schema",
+    "name": "DealUpdateMealEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealUpdateNForNEntity": {
+    "type": "schema",
+    "name": "DealUpdateNForNEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DealUpdateNForPriceNEntity": {
+    "type": "schema",
+    "name": "DealUpdateNForPriceNEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionTypeEntity",
+      "ScheduleDateTimeEntity"
+    ]
+  },
+  "schema:DeliveryInfoEntity": {
+    "type": "schema",
+    "name": "DeliveryInfoEntity",
+    "referencedSchemas": []
+  },
+  "schema:DietaryLabelsEntity": {
+    "type": "schema",
+    "name": "DietaryLabelsEntity",
+    "referencedSchemas": []
+  },
+  "schema:discountResponse": {
+    "type": "schema",
+    "name": "discountResponse",
+    "referencedSchemas": [
+      "DealGetDiscountEntity"
+    ]
+  },
+  "schema:DiscountsEntity": {
+    "type": "schema",
+    "name": "DiscountsEntity",
+    "referencedSchemas": [
+      "AdditionalDiscountsEntity"
+    ]
+  },
+  "schema:DriverLocationEntity": {
+    "type": "schema",
+    "name": "DriverLocationEntity",
+    "referencedSchemas": []
+  },
+  "schema:Empty": {
+    "type": "schema",
+    "name": "Empty",
+    "referencedSchemas": []
+  },
+  "schema:EntityCreateEvent": {
+    "type": "schema",
+    "name": "EntityCreateEvent",
+    "referencedSchemas": []
+  },
+  "schema:EntityDeleteEvent": {
+    "type": "schema",
+    "name": "EntityDeleteEvent",
+    "referencedSchemas": []
+  },
+  "schema:EntityStockStatusUpdateEvent": {
+    "type": "schema",
+    "name": "EntityStockStatusUpdateEvent",
+    "referencedSchemas": []
+  },
+  "schema:EntityUpdateEvent": {
+    "type": "schema",
+    "name": "EntityUpdateEvent",
+    "referencedSchemas": []
+  },
+  "schema:ErrorResponse400": {
+    "type": "schema",
+    "name": "ErrorResponse400",
+    "referencedSchemas": []
+  },
+  "schema:ErrorResponse401": {
+    "type": "schema",
+    "name": "ErrorResponse401",
+    "referencedSchemas": []
+  },
+  "schema:ErrorResponse403": {
+    "type": "schema",
+    "name": "ErrorResponse403",
+    "referencedSchemas": []
+  },
+  "schema:ErrorResponse404": {
+    "type": "schema",
+    "name": "ErrorResponse404",
+    "referencedSchemas": []
+  },
+  "schema:ErrorResponse409": {
+    "type": "schema",
+    "name": "ErrorResponse409",
+    "referencedSchemas": []
+  },
+  "schema:ErrorResponse429": {
+    "type": "schema",
+    "name": "ErrorResponse429",
+    "referencedSchemas": []
+  },
+  "schema:KitchenSectionEntity": {
+    "type": "schema",
+    "name": "KitchenSectionEntity",
+    "referencedSchemas": []
+  },
+  "schema:kitchenSectionResponse": {
+    "type": "schema",
+    "name": "kitchenSectionResponse",
+    "referencedSchemas": [
+      "KitchenSectionEntity"
+    ]
+  },
+  "schema:ListOrdersResponse": {
+    "type": "schema",
+    "name": "ListOrdersResponse",
+    "referencedSchemas": [
+      "OrderHeaderEntity"
+    ]
+  },
+  "schema:LongLatPoint": {
+    "type": "schema",
+    "name": "LongLatPoint",
+    "referencedSchemas": []
+  },
+  "schema:mealsResponse": {
+    "type": "schema",
+    "name": "mealsResponse",
+    "referencedSchemas": [
+      "DealGetDiscountEntity"
+    ]
+  },
+  "schema:MenuCategoryEntity": {
+    "type": "schema",
+    "name": "MenuCategoryEntity",
+    "referencedSchemas": [
+      "ScheduleEntity",
+      "ServiceAvailabilityEntity"
+    ]
+  },
+  "schema:MenuCategoryPutEntity": {
+    "type": "schema",
+    "name": "MenuCategoryPutEntity",
+    "referencedSchemas": [
+      "ScheduleEntity"
+    ]
+  },
+  "schema:menuCategoryResponse": {
+    "type": "schema",
+    "name": "menuCategoryResponse",
+    "referencedSchemas": [
+      "MenuCategoryEntity"
+    ]
+  },
+  "schema:MenuEntityModel": {
+    "type": "schema",
+    "name": "MenuEntityModel",
+    "referencedSchemas": [
+      "MenuCategoryEntity",
+      "MenuItemEntity",
+      "MenuModifierEntity",
+      "MenuModifierGroupEntity",
+      "MenuSubCategoryEntity",
+      "MultipleMenuEntity"
+    ]
+  },
+  "schema:MenuImageProcessingErrorEvent": {
+    "type": "schema",
+    "name": "MenuImageProcessingErrorEvent",
+    "referencedSchemas": []
+  },
+  "schema:MenuItemEntity": {
+    "type": "schema",
+    "name": "MenuItemEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionInfoEntity",
+      "ScheduleEntity",
+      "ServiceAvailabilityEntity"
+    ]
+  },
+  "schema:MenuItemGetEntity": {
+    "type": "schema",
+    "name": "MenuItemGetEntity",
+    "referencedSchemas": [
+      "MenuItemUpdateEntity"
+    ]
+  },
+  "schema:MenuItemResponse": {
+    "type": "schema",
+    "name": "MenuItemResponse",
+    "referencedSchemas": [
+      "MenuItemGetEntity"
+    ]
+  },
+  "schema:MenuItemUpdateEntity": {
+    "type": "schema",
+    "name": "MenuItemUpdateEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionInfoEntity",
+      "ScheduleEntity"
+    ]
+  },
+  "schema:MenuModifierEntity": {
+    "type": "schema",
+    "name": "MenuModifierEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionInfoEntity"
+    ]
+  },
+  "schema:MenuModifierGetEntity": {
+    "type": "schema",
+    "name": "MenuModifierGetEntity",
+    "referencedSchemas": [
+      "MenuModifierUpdateEntity"
+    ]
+  },
+  "schema:MenuModifierGroupEntity": {
+    "type": "schema",
+    "name": "MenuModifierGroupEntity",
+    "referencedSchemas": []
+  },
+  "schema:menuModifierGroupResponse": {
+    "type": "schema",
+    "name": "menuModifierGroupResponse",
+    "referencedSchemas": [
+      "MenuModifierGroupEntity"
+    ]
+  },
+  "schema:MenuModifierResponse": {
+    "type": "schema",
+    "name": "MenuModifierResponse",
+    "referencedSchemas": [
+      "MenuModifierGetEntity"
+    ]
+  },
+  "schema:MenuModifierUpdateEntity": {
+    "type": "schema",
+    "name": "MenuModifierUpdateEntity",
+    "referencedSchemas": [
+      "DietaryLabelsEntity",
+      "NutritionInfoEntity"
+    ]
+  },
+  "schema:MenuProcessingCompletedStatus": {
+    "type": "schema",
+    "name": "MenuProcessingCompletedStatus",
+    "referencedSchemas": []
+  },
+  "schema:MenuResponse": {
+    "type": "schema",
+    "name": "MenuResponse",
+    "referencedSchemas": [
+      "MenuEntityModel"
+    ]
+  },
+  "schema:MenuSubCategoryEntity": {
+    "type": "schema",
+    "name": "MenuSubCategoryEntity",
+    "referencedSchemas": [
+      "ScheduleEntity",
+      "ServiceAvailabilityEntity"
+    ]
+  },
+  "schema:MenuSubCategoryResponse": {
+    "type": "schema",
+    "name": "MenuSubCategoryResponse",
+    "referencedSchemas": [
+      "MenuSubCategoryEntity"
+    ]
+  },
+  "schema:MenuUpdatedEvent": {
+    "type": "schema",
+    "name": "MenuUpdatedEvent",
+    "referencedSchemas": []
+  },
+  "schema:MultipleMenuEntity": {
+    "type": "schema",
+    "name": "MultipleMenuEntity",
+    "referencedSchemas": [
+      "ServiceAvailabilityEntity"
+    ]
+  },
+  "schema:NForNDealsResponse": {
+    "type": "schema",
+    "name": "NForNDealsResponse",
+    "referencedSchemas": [
+      "DealGetNForNEntity"
+    ]
+  },
+  "schema:NForPriceNDealsResponse": {
+    "type": "schema",
+    "name": "NForPriceNDealsResponse",
+    "referencedSchemas": [
+      "DealGetNForPriceNEntity"
+    ]
+  },
+  "schema:NutritionInfoEntity": {
+    "type": "schema",
+    "name": "NutritionInfoEntity",
+    "referencedSchemas": [
+      "NutritionTypeEntity"
+    ]
+  },
+  "schema:NutritionTypeEntity": {
+    "type": "schema",
+    "name": "NutritionTypeEntity",
+    "referencedSchemas": []
+  },
+  "schema:OpenCloseHoursUpdateEvent": {
+    "type": "schema",
+    "name": "OpenCloseHoursUpdateEvent",
+    "referencedSchemas": []
+  },
+  "schema:OrderAcceptedEvent": {
+    "type": "schema",
+    "name": "OrderAcceptedEvent",
+    "referencedSchemas": []
+  },
+  "schema:OrderByIdResponse": {
+    "type": "schema",
+    "name": "OrderByIdResponse",
+    "referencedSchemas": [
+      "OrderEntity"
+    ]
+  },
+  "schema:OrderCancellationRequest": {
+    "type": "schema",
+    "name": "OrderCancellationRequest",
+    "referencedSchemas": []
+  },
+  "schema:OrderCancelledEvent": {
+    "type": "schema",
+    "name": "OrderCancelledEvent",
+    "referencedSchemas": []
+  },
+  "schema:OrderEntity": {
+    "type": "schema",
+    "name": "OrderEntity",
+    "referencedSchemas": [
+      "ChargesEntity",
+      "CustomerEntity",
+      "DeliveryInfoEntity",
+      "DiscountsEntity",
+      "OrderItemEntity",
+      "OrderStatus"
+    ]
+  },
+  "schema:OrderFulfilledEvent": {
+    "type": "schema",
+    "name": "OrderFulfilledEvent",
+    "referencedSchemas": []
+  },
+  "schema:OrderHeaderEntity": {
+    "type": "schema",
+    "name": "OrderHeaderEntity",
+    "referencedSchemas": [
+      "ChargesEntity",
+      "CustomerEntity",
+      "DeliveryInfoEntity",
+      "DiscountsEntity",
+      "OrderStatus"
+    ]
+  },
+  "schema:OrderItemEntity": {
+    "type": "schema",
+    "name": "OrderItemEntity",
+    "referencedSchemas": [
+      "VatSplitEntity"
+    ]
+  },
+  "schema:OrderPlacedEvent": {
+    "type": "schema",
+    "name": "OrderPlacedEvent",
+    "referencedSchemas": []
+  },
+  "schema:OrderReadyEvent": {
+    "type": "schema",
+    "name": "OrderReadyEvent",
+    "referencedSchemas": []
+  },
+  "schema:OrderRefundRequest": {
+    "type": "schema",
+    "name": "OrderRefundRequest",
+    "referencedSchemas": []
+  },
+  "schema:OrderReplaceEntity": {
+    "type": "schema",
+    "name": "OrderReplaceEntity",
+    "referencedSchemas": []
+  },
+  "schema:OrderStatus": {
+    "type": "schema",
+    "name": "OrderStatus",
+    "referencedSchemas": []
+  },
+  "schema:OrderUpdatedEvent": {
+    "type": "schema",
+    "name": "OrderUpdatedEvent",
+    "referencedSchemas": []
+  },
+  "schema:PatchCustomerEntity": {
+    "type": "schema",
+    "name": "PatchCustomerEntity",
+    "referencedSchemas": []
+  },
+  "schema:PatchOrderEntity:part-1": {
+    "type": "schema",
+    "name": "PatchOrderEntity",
+    "referencedSchemas": [
+      "PatchCustomerEntity"
+    ]
+  },
+  "schema:PatchOrderEntity:part-2": {
+    "type": "schema",
+    "name": "PatchOrderEntity",
+    "referencedSchemas": [
+      "PatchCustomerEntity"
+    ]
+  },
+  "schema:patchResellerRequest": {
+    "type": "schema",
+    "name": "patchResellerRequest",
+    "referencedSchemas": []
+  },
+  "schema:RefundOrderResponse": {
+    "type": "schema",
+    "name": "RefundOrderResponse",
+    "referencedSchemas": []
+  },
+  "schema:resellerOnboardRequest": {
+    "type": "schema",
+    "name": "resellerOnboardRequest",
+    "referencedSchemas": []
+  },
+  "schema:ResellerOnboardResponseModel": {
+    "type": "schema",
+    "name": "ResellerOnboardResponseModel",
+    "referencedSchemas": []
+  },
+  "schema:ScheduleDateTimeEntity": {
+    "type": "schema",
+    "name": "ScheduleDateTimeEntity",
+    "referencedSchemas": []
+  },
+  "schema:ScheduleEntity": {
+    "type": "schema",
+    "name": "ScheduleEntity",
+    "referencedSchemas": []
+  },
+  "schema:ServiceAvailabilityEntity": {
+    "type": "schema",
+    "name": "ServiceAvailabilityEntity",
+    "referencedSchemas": []
+  },
+  "schema:SpecialHoursUpdateEvent": {
+    "type": "schema",
+    "name": "SpecialHoursUpdateEvent",
+    "referencedSchemas": []
+  },
+  "schema:StoreByIdResponse": {
+    "type": "schema",
+    "name": "StoreByIdResponse",
+    "referencedSchemas": [
+      "StoreEntity"
+    ]
+  },
+  "schema:StoreEntity": {
+    "type": "schema",
+    "name": "StoreEntity",
+    "referencedSchemas": []
+  },
+  "schema:StoreHoursResponse": {
+    "type": "schema",
+    "name": "StoreHoursResponse",
+    "referencedSchemas": [
+      "UpdateStoreHoursRequest"
+    ]
+  },
+  "schema:StoreStatusEntity": {
+    "type": "schema",
+    "name": "StoreStatusEntity",
+    "referencedSchemas": []
+  },
+  "schema:TimeslotEntity": {
+    "type": "schema",
+    "name": "TimeslotEntity",
+    "referencedSchemas": []
+  },
+  "schema:TokenRequest": {
+    "type": "schema",
+    "name": "TokenRequest",
+    "referencedSchemas": []
+  },
+  "schema:TokenResponse": {
+    "type": "schema",
+    "name": "TokenResponse",
+    "referencedSchemas": []
+  },
+  "schema:UpdateDeliveryZones": {
+    "type": "schema",
+    "name": "UpdateDeliveryZones",
+    "referencedSchemas": [
+      "LongLatPoint"
+    ]
+  },
+  "schema:UpdateMenuRequest": {
+    "type": "schema",
+    "name": "UpdateMenuRequest",
+    "referencedSchemas": [
+      "MenuEntityModel"
+    ]
+  },
+  "schema:UpdateOrderStatusRequest": {
+    "type": "schema",
+    "name": "UpdateOrderStatusRequest",
+    "referencedSchemas": []
+  },
+  "schema:UpdateStoreHoursRequest": {
+    "type": "schema",
+    "name": "UpdateStoreHoursRequest",
+    "referencedSchemas": [
+      "WeeklyOpeningHoursEntity"
+    ]
+  },
+  "schema:VatSplitEntity": {
+    "type": "schema",
+    "name": "VatSplitEntity",
+    "referencedSchemas": []
+  },
+  "schema:WeeklyOpeningHoursEntity": {
+    "type": "schema",
+    "name": "WeeklyOpeningHoursEntity",
+    "referencedSchemas": [
+      "TimeslotEntity"
+    ]
+  },
+  "webhook:EntityCreateEvent": {
+    "type": "webhook",
+    "name": "EntityCreateEvent",
+    "referencedSchemas": [
+      "EntityCreateEvent"
+    ]
+  },
+  "webhook:EntityDeleteEvent": {
+    "type": "webhook",
+    "name": "EntityDeleteEvent",
+    "referencedSchemas": [
+      "EntityDeleteEvent"
+    ]
+  },
+  "webhook:EntityStockStatusUpdateEvent": {
+    "type": "webhook",
+    "name": "EntityStockStatusUpdateEvent",
+    "referencedSchemas": [
+      "EntityStockStatusUpdateEvent"
+    ]
+  },
+  "webhook:EntityUpdateEvent": {
+    "type": "webhook",
+    "name": "EntityUpdateEvent",
+    "referencedSchemas": [
+      "EntityUpdateEvent"
+    ]
+  },
+  "webhook:MenuImageProcessingErrorEvent": {
+    "type": "webhook",
+    "name": "MenuImageProcessingErrorEvent",
+    "referencedSchemas": [
+      "MenuImageProcessingErrorEvent"
+    ]
+  },
+  "webhook:MenuProcessingCompletedStatus": {
+    "type": "webhook",
+    "name": "MenuProcessingCompletedStatus",
+    "referencedSchemas": [
+      "MenuProcessingCompletedStatus"
+    ]
+  },
+  "webhook:MenuUpdatedEvent": {
+    "type": "webhook",
+    "name": "MenuUpdatedEvent",
+    "referencedSchemas": [
+      "MenuUpdatedEvent"
+    ]
+  },
+  "webhook:OpenCloseHoursUpdateEvent": {
+    "type": "webhook",
+    "name": "OpenCloseHoursUpdateEvent",
+    "referencedSchemas": [
+      "OpenCloseHoursUpdateEvent"
+    ]
+  },
+  "webhook:OrderAcceptedEvent": {
+    "type": "webhook",
+    "name": "OrderAcceptedEvent",
+    "referencedSchemas": [
+      "OrderAcceptedEvent"
+    ]
+  },
+  "webhook:OrderCancelledEvent": {
+    "type": "webhook",
+    "name": "OrderCancelledEvent",
+    "referencedSchemas": [
+      "OrderCancelledEvent"
+    ]
+  },
+  "webhook:OrderFulfilledEvent": {
+    "type": "webhook",
+    "name": "OrderFulfilledEvent",
+    "referencedSchemas": [
+      "OrderFulfilledEvent"
+    ]
+  },
+  "webhook:OrderPlacedEvent": {
+    "type": "webhook",
+    "name": "OrderPlacedEvent",
+    "referencedSchemas": [
+      "OrderPlacedEvent"
+    ]
+  },
+  "webhook:OrderReadyEvent": {
+    "type": "webhook",
+    "name": "OrderReadyEvent",
+    "referencedSchemas": [
+      "OrderReadyEvent"
+    ]
+  },
+  "webhook:OrderUpdatedEvent": {
+    "type": "webhook",
+    "name": "OrderUpdatedEvent",
+    "referencedSchemas": [
+      "OrderUpdatedEvent"
+    ]
+  },
+  "webhook:SpecialHoursUpdateEvent": {
+    "type": "webhook",
+    "name": "SpecialHoursUpdateEvent",
+    "referencedSchemas": [
+      "SpecialHoursUpdateEvent"
+    ]
+  },
+  "security:AccessToken": {
+    "type": "security",
+    "name": "AccessToken",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:openapi": {
+    "type": "raw-openapi",
+    "key": "openapi",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:info:part-1": {
+    "type": "raw-openapi",
+    "key": "info",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:info:part-2": {
+    "type": "raw-openapi",
+    "key": "info",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:servers": {
+    "type": "raw-openapi",
+    "key": "servers",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:tags": {
+    "type": "raw-openapi",
+    "key": "tags",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:paths:part-1": {
+    "type": "raw-openapi",
+    "key": "paths",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:paths:part-2": {
+    "type": "raw-openapi",
+    "key": "paths",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:paths:part-3": {
+    "type": "raw-openapi",
+    "key": "paths",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:paths:part-4": {
+    "type": "raw-openapi",
+    "key": "paths",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:paths:part-5": {
+    "type": "raw-openapi",
+    "key": "paths",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-1": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-2": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-3": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-4": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-5": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-6": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-7": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-8": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-9": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-10": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-11": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-12": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-13": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:components:part-14": {
+    "type": "raw-openapi",
+    "key": "components",
+    "referencedSchemas": []
+  },
+  "raw-openapi-top-level:webhooks": {
+    "type": "raw-openapi",
+    "key": "webhooks",
+    "referencedSchemas": []
+  }
+}

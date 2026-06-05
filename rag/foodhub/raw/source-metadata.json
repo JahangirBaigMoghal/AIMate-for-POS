@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-06-05T14:32:37.640Z",
+  "docUrl": "https://partner-api.t2sonline.com/",
+  "specUrl": "https://falcon-production-partner-api-assetsb7c36b1b-15to2ldkqpgba.s3.eu-west-2.amazonaws.com/dvad0kpzj1-production-1.4.51-oas30.json",
+  "title": "Foodhub Partner API",
+  "version": "2026-06-04T14:41:29Z",
+  "serverUrls": [
+    "https://developer.foodhub.com"
+  ],
+  "counts": {
+    "paths": 31,
+    "operations": 52,
+    "schemas": 111,
+    "webhooks": 15,
+    "securitySchemes": 1,
+    "chunks": 217
+  }
+}
