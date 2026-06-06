@@ -137,7 +137,7 @@ export function buildServer() {
   });
 
   const geminiApiKey = env.GEMINI_API_KEY;
-  const geminiModel = env.GEMINI_LIVE_MODEL ?? "gemini-2.0-flash-live-001";
+  const geminiModel = env.GEMINI_LIVE_MODEL ?? "gemini-2.0-flash-exp";
 
   // ─── Health / Readiness ─────────────────────────────────────
 
