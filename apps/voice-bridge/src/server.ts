@@ -405,7 +405,8 @@ function isValidWebhookSignature(body: string, signature: string, secret: string
 
 if (process.env.NODE_ENV !== "test") {
   const app = buildServer();
-  app.listen({ port: env.VOICE_BRIDGE_PORT, host: "0.0.0.0" }).catch((error) => {
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : env.VOICE_BRIDGE_PORT;
+  app.listen({ port, host: "0.0.0.0" }).catch((error) => {
     logger.error({ error }, "voice bridge failed to start");
     process.exit(1);
   });
