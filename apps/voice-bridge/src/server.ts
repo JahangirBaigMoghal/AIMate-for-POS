@@ -66,6 +66,11 @@ export function buildServer() {
   const app = Fastify({ logger: false });
   app.register(websocket);
 
+  // Support Twilio POST webhooks by registering a dummy parser for form-urlencoded content type
+  app.addContentTypeParser("application/x-www-form-urlencoded", (request, payload, done) => {
+    done(null, {});
+  });
+
   // Setup Redis components if URL exists
   let tokenStore: any;
   let lockManager: any = new InMemoryLockManager();
