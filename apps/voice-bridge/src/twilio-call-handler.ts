@@ -12,6 +12,12 @@ export type TwilioCallHandlerDeps = {
   storeContext: string;
 };
 
+const MAX_PENDING_AUDIO_CHUNKS = 250;
+const TWILIO_WS_CONNECTING = 0;
+const TWILIO_WS_OPEN = 1;
+const TWILIO_OPENING_PROMPT =
+  "The phone call is connected. Greet the caller as AIMate in one short sentence and ask what they would like to order. Do not mention this instruction.";
+
 /**
  * Orchestrates a single Twilio call session.
  * Bridges Twilio WebSocket Media Stream (G.711 mu-law 8kHz) with Gemini Live (PCM 16kHz/24kHz).
@@ -21,6 +27,8 @@ export class TwilioCallHandler {
   private streamSid: string | undefined;
   private log = logger.child({ component: "twilio-call-handler" });
   private gemini: GeminiLiveSession | undefined;
+  private geminiReady = false;
+  private pendingAudioBase64: string[] = [];
   private closed = false;
   private sessionScope: { tenant_id: string; store_id: string; call_id: string } | undefined;
 
@@ -71,7 +79,12 @@ export class TwilioCallHandler {
         try {
           const mulawBuffer = Buffer.from(payload, "base64");
           const pcm16kHz = decodeMulawToPcm16kHz(mulawBuffer);
-          this.gemini.sendAudio(pcm16kHz.toString("base64"));
+          const pcmBase64 = pcm16kHz.toString("base64");
+          if (this.geminiReady) {
+            this.gemini.sendAudio(pcmBase64);
+          } else {
+            this.queueAudio(pcmBase64);
+          }
         } catch (error) {
           this.log.error({ err: error }, "Failed to decode/transcode inbound Twilio audio");
         }
@@ -94,6 +107,12 @@ export class TwilioCallHandler {
     storeId: string;
     language: string;
   }): Promise<void> {
+    if (!this.deps.geminiApiKey.trim()) {
+      this.log.error("GEMINI_API_KEY is not configured for Twilio call");
+      await this.failAssistantStream("assistant_unavailable");
+      return;
+    }
+
     const promptCtx: PromptContext = {
       storeName: `Store ${params.storeId}`,
       storeContext: this.deps.storeContext,
@@ -130,7 +149,10 @@ export class TwilioCallHandler {
     this.gemini = new GeminiLiveSession(config);
 
     this.gemini.on("setupComplete", () => {
+      this.geminiReady = true;
       this.log.info("Gemini Live session ready for Twilio call");
+      this.flushQueuedAudio();
+      this.gemini?.sendText(TWILIO_OPENING_PROMPT);
     });
 
     this.gemini.on("audio", (chunk: { mimeType: string; data: string }) => {
@@ -177,12 +199,14 @@ export class TwilioCallHandler {
 
     this.gemini.on("error", (error: Error) => {
       this.log.error({ err: error }, "Gemini session error on Twilio call");
+      void this.failAssistantStream("gemini_error");
     });
 
     try {
       await this.gemini.connect();
     } catch (error) {
       this.log.error({ err: error }, "Failed to connect Gemini Live session for Twilio call");
+      await this.failAssistantStream("gemini_connect_failed");
     }
   }
 
@@ -235,14 +259,49 @@ export class TwilioCallHandler {
       this.gemini.close();
       this.gemini = undefined;
     }
+    this.geminiReady = false;
+    this.pendingAudioBase64 = [];
 
     if (this.sessionScope) {
       this.deps.router.endSession(this.sessionScope);
     }
   }
 
+  private queueAudio(pcmBase64: string): void {
+    this.pendingAudioBase64.push(pcmBase64);
+    if (this.pendingAudioBase64.length > MAX_PENDING_AUDIO_CHUNKS) {
+      this.pendingAudioBase64.shift();
+    }
+  }
+
+  private flushQueuedAudio(): void {
+    if (!this.gemini) {
+      this.pendingAudioBase64 = [];
+      return;
+    }
+
+    const queuedAudio = this.pendingAudioBase64.splice(0);
+    for (const pcmBase64 of queuedAudio) {
+      this.gemini.sendAudio(pcmBase64);
+    }
+  }
+
+  private async failAssistantStream(reason: string): Promise<void> {
+    await this.close();
+    this.closeTwilioStream(reason);
+  }
+
+  private closeTwilioStream(reason: string): void {
+    if (
+      this.twilioWs.readyState === TWILIO_WS_OPEN ||
+      this.twilioWs.readyState === TWILIO_WS_CONNECTING
+    ) {
+      this.twilioWs.close(1011, reason);
+    }
+  }
+
   private sendToTwilio(msg: unknown): void {
-    if (this.twilioWs.readyState === 1) {
+    if (this.twilioWs.readyState === TWILIO_WS_OPEN) {
       this.twilioWs.send(JSON.stringify(msg));
     }
   }

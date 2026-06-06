@@ -52,6 +52,10 @@ export class GeminiLiveSession extends EventEmitter {
    * Open WebSocket to Gemini Live, send setup message, and wait for setupComplete.
    */
   connect(): Promise<void> {
+    if (!this.config.apiKey.trim()) {
+      return Promise.reject(new Error("GEMINI_API_KEY is not configured"));
+    }
+
     return new Promise((resolve, reject) => {
       const url = `${LIVE_API_BASE}?key=${this.config.apiKey}`;
       this.log.info({ model: this.config.model }, "connecting to gemini live");
@@ -71,10 +75,21 @@ export class GeminiLiveSession extends EventEmitter {
       this.ws.on("message", (raw: Buffer | string) => {
         try {
           const data = JSON.parse(typeof raw === "string" ? raw : raw.toString("utf8"));
-          this.handleServerMessage(data, () => {
-            clearTimeout(setupTimeout);
-            resolve();
-          });
+          this.handleServerMessage(
+            data,
+            () => {
+              clearTimeout(setupTimeout);
+              resolve();
+            },
+            (error) => {
+              clearTimeout(setupTimeout);
+              if (!this.connected) {
+                reject(error);
+              } else {
+                this.emit("error", error);
+              }
+            }
+          );
         } catch (err) {
           this.log.error({ err }, "failed to parse gemini message");
         }
@@ -192,8 +207,16 @@ export class GeminiLiveSession extends EventEmitter {
 
   private handleServerMessage(
     data: Record<string, unknown>,
-    onSetupComplete: () => void
+    onSetupComplete: () => void,
+    onError: (error: Error) => void
   ): void {
+    if ("error" in data) {
+      const error = parseGeminiError(data.error);
+      this.log.error({ err: data.error }, "gemini live server error");
+      onError(error);
+      return;
+    }
+
     // Setup acknowledgement
     if ("setupComplete" in data) {
       this.connected = true;
@@ -254,4 +277,17 @@ export class GeminiLiveSession extends EventEmitter {
     }
     this.ws.send(JSON.stringify(payload));
   }
+}
+
+function parseGeminiError(value: unknown): Error {
+  if (value instanceof Error) return value;
+  if (typeof value === "string") return new Error(value);
+  if (typeof value === "object" && value !== null) {
+    const error = value as { message?: unknown; code?: unknown; status?: unknown };
+    const message = typeof error.message === "string" ? error.message : JSON.stringify(value);
+    const code = typeof error.code === "number" || typeof error.code === "string" ? ` ${error.code}` : "";
+    const status = typeof error.status === "string" ? ` ${error.status}` : "";
+    return new Error(`Gemini Live error${code}${status}: ${message}`);
+  }
+  return new Error("Unknown Gemini Live error");
 }

@@ -1,5 +1,6 @@
 import websocket from "@fastify/websocket";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { IncomingHttpHeaders } from "node:http";
 import { Redis } from "ioredis";
 import { FoodHubClient, FoodHubTokenManager, RedisTokenStore } from "@aimate/foodhub";
 import { MockPaymentProvider, StripePaymentProvider } from "@aimate/payments";
@@ -138,9 +139,12 @@ export function buildServer() {
 
   const geminiApiKey = env.GEMINI_API_KEY;
   const geminiModel =
-    env.GEMINI_LIVE_MODEL === "gemini-2.0-flash-live-001" || env.GEMINI_LIVE_MODEL === "gemini-2.0-flash-exp"
-      ? "gemini-3.1-flash-live-preview"
-      : (env.GEMINI_LIVE_MODEL ?? "gemini-3.1-flash-live-preview");
+    env.GEMINI_LIVE_MODEL === "gemini-2.0-flash-live-001" ||
+    env.GEMINI_LIVE_MODEL === "gemini-2.0-flash-exp" ||
+    env.GEMINI_LIVE_MODEL === "gemini-live-2.5-flash-preview" ||
+    env.GEMINI_LIVE_MODEL === "gemini-3.1-flash-live-preview"
+      ? "gemini-2.5-flash-native-audio-preview-12-2025"
+      : (env.GEMINI_LIVE_MODEL ?? "gemini-2.5-flash-native-audio-preview-12-2025");
 
   // ─── Health / Readiness ─────────────────────────────────────
 
@@ -227,21 +231,26 @@ export function buildServer() {
     const storeId = query.store_id ?? env.FOODHUB_DEFAULT_STORE_ID ?? "demo-store";
     const language = query.language ?? "en";
 
-    const host = request.headers.host ?? "localhost";
-    // Detect protocol - if behind proxy (like Vercel/ngrok) use wss, otherwise ws
-    const protocol = request.headers["x-forwarded-proto"] === "https" ? "wss" : "ws";
-    const wsUrl = `${protocol}://${host}/ws/voice-twilio`;
+    if (!geminiApiKey?.trim()) {
+      logger.error("Twilio inbound call rejected because GEMINI_API_KEY is not configured");
+      reply.type("text/xml").send(buildAssistantUnavailableTwiml());
+      return;
+    }
+
+    const wsUrl = buildTwilioStreamUrl(request.headers);
 
     const twiml = `
 <Response>
-  <Say>Hello! Welcome to our restaurant ordering system. Connecting you to the assistant now.</Say>
+  <Say>Hello! Welcome to our restaurant ordering system. Connecting you to the ordering assistant now.</Say>
   <Connect>
-    <Stream url="${wsUrl}">
-      <Parameter name="tenant_id" value="${tenantId}" />
-      <Parameter name="store_id" value="${storeId}" />
-      <Parameter name="language" value="${language}" />
+    <Stream url="${escapeXmlAttribute(wsUrl)}">
+      <Parameter name="tenant_id" value="${escapeXmlAttribute(tenantId)}" />
+      <Parameter name="store_id" value="${escapeXmlAttribute(storeId)}" />
+      <Parameter name="language" value="${escapeXmlAttribute(language)}" />
     </Stream>
   </Connect>
+  <Say>Sorry, the ordering assistant is not available right now. Please call back in a few minutes.</Say>
+  <Hangup />
 </Response>
     `;
     reply.type("text/xml").send(twiml.trim());
@@ -409,6 +418,40 @@ function isValidWebhookSignature(body: string, signature: string, secret: string
   const a = Buffer.from(expected);
   const b = Buffer.from(signature);
   return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function buildAssistantUnavailableTwiml(): string {
+  return `
+<Response>
+  <Say>Sorry, the ordering assistant is not available right now. Please call back in a few minutes.</Say>
+  <Hangup />
+</Response>
+  `.trim();
+}
+
+export function buildTwilioStreamUrl(headers: IncomingHttpHeaders): string {
+  const host = firstHeaderValue(headers.host)?.trim() || "localhost";
+  const forwardedProto = firstHeaderValue(headers["x-forwarded-proto"])
+    ?.split(",")[0]
+    ?.trim()
+    .toLowerCase();
+  const forwardedSsl = firstHeaderValue(headers["x-forwarded-ssl"])?.trim().toLowerCase();
+  const isSecureProxy = forwardedProto === "https" || forwardedSsl === "on";
+  const isLocalHost = /^(localhost|127\.0\.0\.1|\[::1\]|::1)(:\d+)?$/i.test(host);
+  const protocol = isSecureProxy || !isLocalHost ? "wss" : "ws";
+  return `${protocol}://${host}/ws/voice-twilio`;
+}
+
+function firstHeaderValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function escapeXmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 if (process.env.NODE_ENV !== "test") {
