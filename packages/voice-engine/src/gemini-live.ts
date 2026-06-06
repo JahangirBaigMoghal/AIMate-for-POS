@@ -80,7 +80,7 @@ export class GeminiLiveSession extends EventEmitter {
         }
       });
 
-      this.ws.on("error", (err) => {
+      this.ws.on("error", (err: any) => {
         this.log.error({ err }, "gemini websocket error");
         clearTimeout(setupTimeout);
         if (!this.connected) {
@@ -90,7 +90,7 @@ export class GeminiLiveSession extends EventEmitter {
         }
       });
 
-      this.ws.on("close", (code, reason) => {
+      this.ws.on("close", (code: number, reason: any) => {
         this.log.info({ code, reason: reason?.toString() }, "gemini websocket closed");
         this.connected = false;
         clearTimeout(setupTimeout);
