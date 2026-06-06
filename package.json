@@ -48,7 +48,7 @@
     "openapi-typescript": "^7.10.1",
     "tsx": "^4.20.6",
     "turbo": "^2.9.16",
-    "typescript": "^5.9.3",
+    "typescript": "5.9.3",
     "vitest": "^4.0.15"
   },
   "overrides": {
