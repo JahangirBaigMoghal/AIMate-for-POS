@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "dev:dashboard": "next dev",
-    "build": "next build",
-    "build:dashboard": "next build",
+    "build": "next build && node scripts/ensure-vercel-output.mjs",
+    "build:dashboard": "next build && node scripts/ensure-vercel-output.mjs",
     "start": "next start"
   },
   "dependencies": {
