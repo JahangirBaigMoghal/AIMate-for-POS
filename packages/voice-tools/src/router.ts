@@ -18,7 +18,7 @@ import { PaymentProvider } from "@aimate/payments";
 import { MenuCatalog } from "@aimate/rag";
 import { createId, err, ok, type Result } from "@aimate/shared";
 import { TelephonyProvider } from "@aimate/telephony";
-import { InMemoryVoiceWorkflowStore, type SessionStartInput } from "./workflow";
+import { InMemoryVoiceWorkflowStore, type SessionStartInput, type VoiceWorkflowStore } from "./workflow";
 
 export type ToolName =
   | "get_store_context"
@@ -44,14 +44,19 @@ export type ToolRouterConfig = {
   telephonyProvider: TelephonyProvider;
   menuEntities: MenuEntity[];
   menuCatalog?: MenuCatalog;
-  workflow?: InMemoryVoiceWorkflowStore;
+  workflow?: VoiceWorkflowStore;
   lockManager?: LockManagerLike;
   staffNumber?: string;
+  killSwitches?: {
+    orderCommit?: boolean;
+    paymentLinks?: boolean;
+    handoff?: boolean;
+  };
 };
 
 export class VoiceToolRouter {
   private readonly menuCatalog: MenuCatalog;
-  private readonly workflow: InMemoryVoiceWorkflowStore;
+  private readonly workflow: VoiceWorkflowStore;
 
   constructor(private readonly config: ToolRouterConfig) {
     this.menuCatalog =
@@ -63,12 +68,12 @@ export class VoiceToolRouter {
     this.workflow = config.workflow ?? new InMemoryVoiceWorkflowStore();
   }
 
-  startSession(input: SessionStartInput) {
+  async startSession(input: SessionStartInput) {
     return this.workflow.startSession(input);
   }
 
-  endSession(input: { tenant_id: string; store_id: string; call_id: string }) {
-    this.workflow.endSession(input);
+  async endSession(input: { tenant_id: string; store_id: string; call_id: string }) {
+    await this.workflow.endSession(input);
   }
 
   markMenuStale(tenantId: string, storeId: string) {
@@ -152,7 +157,7 @@ export class VoiceToolRouter {
             );
           }
 
-          const snapshot = this.workflow.addItem({
+          const snapshot = await this.workflow.addItem({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             call_id: parsed.call_id,
@@ -174,7 +179,7 @@ export class VoiceToolRouter {
 
         case "remove_item_from_cart": {
           const parsed = RemoveItemFromCartToolInputSchema.parse(input);
-          const snapshot = this.workflow.removeItem({
+          const snapshot = await this.workflow.removeItem({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             call_id: parsed.call_id,
@@ -193,7 +198,7 @@ export class VoiceToolRouter {
 
         case "set_fulfillment": {
           const parsed = SetFulfillmentToolInputSchema.parse(input);
-          const snapshot = this.workflow.setFulfillment({
+          const snapshot = await this.workflow.setFulfillment({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             call_id: parsed.call_id,
@@ -211,7 +216,7 @@ export class VoiceToolRouter {
 
         case "set_customer_details": {
           const parsed = SetCustomerDetailsToolInputSchema.parse(input);
-          const snapshot = this.workflow.setCustomer({
+          const snapshot = await this.workflow.setCustomer({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             call_id: parsed.call_id,
@@ -234,7 +239,7 @@ export class VoiceToolRouter {
 
         case "set_delivery_address": {
           const parsed = SetDeliveryAddressToolInputSchema.parse(input);
-          const snapshot = this.workflow.setDeliveryAddress({
+          const snapshot = await this.workflow.setDeliveryAddress({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             call_id: parsed.call_id,
@@ -264,7 +269,7 @@ export class VoiceToolRouter {
 
         case "get_cart": {
           const parsed = GetCartToolInputSchema.parse(input);
-          const snapshot = this.workflow.snapshot(parsed);
+          const snapshot = await this.workflow.snapshot(parsed);
           return ok(
             ToolResultSchema.parse({
               ok: true,
@@ -276,7 +281,7 @@ export class VoiceToolRouter {
 
         case "confirm_order": {
           const parsed = ConfirmOrderToolInputSchema.parse(input);
-          const attempt = this.workflow.confirmOrder({
+          const attempt = await this.workflow.confirmOrder({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             call_id: parsed.call_id,
@@ -300,6 +305,13 @@ export class VoiceToolRouter {
         }
 
         case "create_foodhub_order": {
+          if (this.config.killSwitches?.orderCommit) {
+            return err(
+              "ORDER_COMMIT_DISABLED",
+              "Order submission is temporarily disabled by an operator."
+            );
+          }
+
           const parsed = CreateFoodHubOrderToolInputSchema.parse(input);
           if (!parsed.customer_confirmed) {
             return err(
@@ -308,7 +320,7 @@ export class VoiceToolRouter {
             );
           }
 
-          const attempt = this.workflow.getAttempt({
+          const attempt = await this.workflow.getAttempt({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             order_attempt_id: parsed.order_attempt_id
@@ -326,7 +338,7 @@ export class VoiceToolRouter {
           }
 
           try {
-            this.workflow.markSubmitting({
+            await this.workflow.markSubmitting({
               tenant_id: parsed.tenant_id,
               store_id: parsed.store_id,
               order_attempt_id: parsed.order_attempt_id
@@ -334,7 +346,7 @@ export class VoiceToolRouter {
 
             if (this.config.foodhub.hasCredentials()) {
               const response = await this.config.foodhub.createOrder(parsed.store_id, attempt.payload);
-              const submitted = this.workflow.markSubmitted({
+              const submitted = await this.workflow.markSubmitted({
                 tenant_id: parsed.tenant_id,
                 store_id: parsed.store_id,
                 order_attempt_id: parsed.order_attempt_id,
@@ -359,7 +371,7 @@ export class VoiceToolRouter {
               );
             }
 
-            const submitted = this.workflow.markSubmitted({
+            const submitted = await this.workflow.markSubmitted({
               tenant_id: parsed.tenant_id,
               store_id: parsed.store_id,
               order_attempt_id: parsed.order_attempt_id,
@@ -383,7 +395,7 @@ export class VoiceToolRouter {
               })
             );
           } catch (error) {
-            this.workflow.markFailed({
+            await this.workflow.markFailed({
               tenant_id: parsed.tenant_id,
               store_id: parsed.store_id,
               order_attempt_id: parsed.order_attempt_id,
@@ -400,8 +412,15 @@ export class VoiceToolRouter {
         }
 
         case "create_payment_link": {
+          if (this.config.killSwitches?.paymentLinks) {
+            return err(
+              "PAYMENT_LINKS_DISABLED",
+              "Payment links are temporarily disabled by an operator."
+            );
+          }
+
           const parsed = CreatePaymentLinkToolInputSchema.parse(input);
-          const attempt = this.workflow.getAttempt({
+          const attempt = await this.workflow.getAttempt({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             order_attempt_id: parsed.order_attempt_id
@@ -425,7 +444,7 @@ export class VoiceToolRouter {
             amount: parsed.amount,
             currency: parsed.currency
           });
-          const payment = this.workflow.recordPayment({
+          const payment = await this.workflow.recordPayment({
             tenant_id: parsed.tenant_id,
             store_id: parsed.store_id,
             order_attempt_id: parsed.order_attempt_id,
@@ -447,6 +466,13 @@ export class VoiceToolRouter {
         }
 
         case "handoff_to_staff": {
+          if (this.config.killSwitches?.handoff) {
+            return err(
+              "HANDOFF_DISABLED",
+              "Staff handoff is temporarily disabled by an operator."
+            );
+          }
+
           const parsed = HandoffToolInputSchema.parse(input);
           if (!this.config.staffNumber) {
             return err("HANDOFF_UNAVAILABLE", "Staff handoff number is not configured.");
@@ -459,7 +485,7 @@ export class VoiceToolRouter {
               store_id: parsed.store_id,
               language: parsed.language,
               intent: "handoff",
-              cart_summary: safeCartSummary(this.workflow, parsed),
+              cart_summary: await safeCartSummary(this.workflow, parsed),
               risk_reason: parsed.reason,
               recommended_action: parsed.summary
             }
@@ -481,12 +507,12 @@ export class VoiceToolRouter {
   }
 }
 
-function safeCartSummary(
-  workflow: InMemoryVoiceWorkflowStore,
+async function safeCartSummary(
+  workflow: VoiceWorkflowStore,
   input: { tenant_id: string; store_id: string; call_id: string }
-): string | undefined {
+): Promise<string | undefined> {
   try {
-    return workflow.snapshot(input).summary;
+    return (await workflow.snapshot(input)).summary;
   } catch {
     return undefined;
   }

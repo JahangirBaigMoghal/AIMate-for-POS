@@ -1,20 +1,34 @@
 import websocket from "@fastify/websocket";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type { IncomingHttpHeaders } from "node:http";
 import { Redis } from "ioredis";
 import { FoodHubClient, FoodHubTokenManager, RedisTokenStore } from "@aimate/foodhub";
 import { MockPaymentProvider, StripePaymentProvider } from "@aimate/payments";
 import { MenuCatalog } from "@aimate/rag";
-import { loadEnv, logger } from "@aimate/shared";
+import { createId, loadEnv, logger, validateVoiceBridgeProductionEnv } from "@aimate/shared";
 import { MockTelephonyProvider, TwilioTelephonyProvider } from "@aimate/telephony";
-import { InMemoryLockManager, RedisLockManager } from "@aimate/datastore";
-import { InMemoryVoiceWorkflowStore, VoiceToolRouter } from "@aimate/voice-tools";
+import { ensureIndexes, getMongoDb, InMemoryLockManager, RedisLockManager, VoicePersistenceRepository } from "@aimate/datastore";
+import { DurableVoiceWorkflowStore, InMemoryVoiceWorkflowStore, VoiceToolRouter } from "@aimate/voice-tools";
 import Fastify from "fastify";
 import { ClientMessageSchema } from "./messages";
 import { CallHandler, type CallHandlerDeps } from "./call-handler";
 import { TwilioCallHandler } from "./twilio-call-handler";
 
 const env = loadEnv();
+const productionEnvValidation = validateVoiceBridgeProductionEnv(process.env);
+
+type MongoRuntimeState = {
+  enabled: boolean;
+  status: "inactive" | "connecting" | "active" | "error";
+  last_error?: string;
+  repository?: Promise<VoicePersistenceRepository>;
+};
+
+type RawBodyRequest = {
+  rawBody?: string;
+};
+
+const inMemoryWebhookIds = new Set<string>();
 
 // ─── Demo menu seed (replaced by live FoodHub sync in Phase 3) ──
 const DEMO_MENU_ENTITIES = [
@@ -67,6 +81,21 @@ export function buildServer() {
   const app = Fastify({ logger: false });
   app.register(websocket);
 
+  app.removeContentTypeParser("application/json");
+  app.addContentTypeParser("application/json", { parseAs: "string" }, (request, body, done) => {
+    const rawBody = Buffer.isBuffer(body) ? body.toString("utf8") : body;
+    (request as typeof request & RawBodyRequest).rawBody = rawBody;
+    if (!rawBody.trim()) {
+      done(null, {});
+      return;
+    }
+    try {
+      done(null, JSON.parse(rawBody));
+    } catch (error) {
+      done(error as Error, undefined);
+    }
+  });
+
   // Support Twilio POST webhooks by registering a dummy parser for form-urlencoded content type
   app.addContentTypeParser("application/x-www-form-urlencoded", (request, payload, done) => {
     done(null, {});
@@ -85,6 +114,8 @@ export function buildServer() {
       logger.error({ err: error }, "Failed to connect to Redis, falling back to in-memory caching");
     }
   }
+
+  const mongo = createMongoRuntimeState();
 
   // Setup Providers based on Env
   let paymentProvider: any;
@@ -122,9 +153,14 @@ export function buildServer() {
     fallbackEntities: DEMO_MENU_ENTITIES
   });
 
-  const workflow = new InMemoryVoiceWorkflowStore({
-    defaultDeliveryFee: env.DEFAULT_DELIVERY_FEE_PENCE
-  });
+  const workflow = mongo.repository
+    ? new DurableVoiceWorkflowStore({
+        pricing: { defaultDeliveryFee: env.DEFAULT_DELIVERY_FEE_PENCE },
+        repository: mongo.repository
+      })
+    : new InMemoryVoiceWorkflowStore({
+        defaultDeliveryFee: env.DEFAULT_DELIVERY_FEE_PENCE
+      });
 
   const router = new VoiceToolRouter({
     foodhub: foodhubClient,
@@ -134,7 +170,12 @@ export function buildServer() {
     menuEntities: DEMO_MENU_ENTITIES,
     menuCatalog,
     workflow,
-    lockManager
+    lockManager,
+    killSwitches: {
+      orderCommit: env.AIMATE_KILL_ORDER_COMMIT,
+      paymentLinks: env.AIMATE_KILL_PAYMENT_LINKS,
+      handoff: env.AIMATE_KILL_HANDOFF
+    }
   });
 
   const geminiApiKey = env.GEMINI_API_KEY;
@@ -155,13 +196,25 @@ export function buildServer() {
   }));
 
   app.get("/ready", async () => ({
-    ok: true,
+    ok: env.NODE_ENV === "production" ? productionEnvValidation.ok : true,
     gemini: geminiApiKey ? "configured" : "missing",
     model: geminiModel,
     telephony: env.TELEPHONY_PROVIDER,
     redis: env.REDIS_URL ? "active" : "inactive",
+    mongodb: {
+      enabled: mongo.enabled,
+      status: mongo.status,
+      last_error: mongo.last_error
+    },
     foodhub: foodhubClient.hasCredentials() ? "configured" : "mock-mode",
-    default_delivery_fee_pence: env.DEFAULT_DELIVERY_FEE_PENCE
+    default_delivery_fee_pence: env.DEFAULT_DELIVERY_FEE_PENCE,
+    kill_switches: {
+      ai_answering: env.AIMATE_KILL_AI_ANSWERING,
+      order_commit: env.AIMATE_KILL_ORDER_COMMIT,
+      payment_links: env.AIMATE_KILL_PAYMENT_LINKS,
+      handoff: env.AIMATE_KILL_HANDOFF
+    },
+    production_env: productionEnvValidation
   }));
 
   app.post("/api/menu/refresh", async (request) => {
@@ -179,11 +232,11 @@ export function buildServer() {
   });
 
   app.post("/api/webhooks/foodhub", async (request, reply) => {
-    const body = JSON.stringify(request.body ?? {});
+    const rawBody = getRawBody(request);
     const signature = request.headers["x-webhook-signature"];
     if (
       env.FOODHUB_WEBHOOK_SECRET &&
-      !isValidWebhookSignature(body, typeof signature === "string" ? signature : "", env.FOODHUB_WEBHOOK_SECRET)
+      !isValidWebhookSignature(rawBody, typeof signature === "string" ? signature : "", env.FOODHUB_WEBHOOK_SECRET)
     ) {
       return reply.status(401).send({ ok: false, error: "Invalid signature" });
     }
@@ -191,10 +244,36 @@ export function buildServer() {
     const event = (request.body ?? {}) as {
       event_type?: string;
       store_id?: string;
+      tenant_id?: string;
       event_id?: string;
     };
-    const tenantId = "demo";
+    const traceId = readTraceId(request.headers);
+    const tenantId = event.tenant_id ?? "demo";
     const storeId = event.store_id ?? env.FOODHUB_DEFAULT_STORE_ID ?? "demo-store";
+    const eventId = event.event_id ?? createWebhookEventId(rawBody);
+    const action = inferFoodHubWebhookAction(event.event_type);
+    const idempotency = await recordFoodHubWebhook({
+      mongo,
+      traceId,
+      eventId,
+      eventType: event.event_type,
+      tenantId,
+      storeId,
+      rawBody,
+      signature: typeof signature === "string" ? signature : undefined
+    });
+
+    if (idempotency === "duplicate") {
+      return {
+        ok: true,
+        received: true,
+        duplicate: true,
+        event_id: eventId,
+        action: "already_recorded",
+        trace_id: traceId
+      };
+    }
+
     const shouldRefreshMenu =
       event.event_type?.includes("MENU") ||
       event.event_type?.includes("ENTITY") ||
@@ -204,22 +283,26 @@ export function buildServer() {
     if (shouldRefreshMenu) {
       router.markMenuStale(tenantId, storeId);
       const snapshot = await menuCatalog.refresh(tenantId, storeId);
+      await markFoodHubWebhookProcessed(mongo, eventId, "PROCESSED", action);
       return {
         ok: true,
         received: true,
-        event_id: event.event_id,
-        action: "menu_refreshed",
+        event_id: eventId,
+        action,
+        trace_id: traceId,
         source: snapshot.source,
         entity_count: snapshot.entities.length,
         last_error: snapshot.last_error
       };
     }
 
+    await markFoodHubWebhookProcessed(mongo, eventId, "PROCESSED", action);
     return {
       ok: true,
       received: true,
-      event_id: event.event_id,
-      action: "record_only"
+      event_id: eventId,
+      action,
+      trace_id: traceId
     };
   });
 
@@ -230,6 +313,12 @@ export function buildServer() {
     const tenantId = query.tenant_id ?? "demo";
     const storeId = query.store_id ?? env.FOODHUB_DEFAULT_STORE_ID ?? "demo-store";
     const language = query.language ?? "en";
+
+    if (env.AIMATE_KILL_AI_ANSWERING) {
+      logger.warn({ tenant_id: tenantId, store_id: storeId }, "Twilio inbound call rejected by AI answering kill switch");
+      reply.type("text/xml").send(buildAssistantUnavailableTwiml());
+      return;
+    }
 
     if (!geminiApiKey?.trim()) {
       logger.error("Twilio inbound call rejected because GEMINI_API_KEY is not configured");
@@ -283,6 +372,15 @@ export function buildServer() {
 
         switch (parsed.type) {
           case "session.start": {
+            if (env.AIMATE_KILL_AI_ANSWERING) {
+              socket.send(JSON.stringify({
+                type: "session.error",
+                error: "AI answering is temporarily disabled by an operator.",
+                code: "AI_ANSWERING_DISABLED"
+              }));
+              return;
+            }
+
             if (!geminiApiKey) {
               socket.send(JSON.stringify({
                 type: "session.error",
@@ -416,8 +514,119 @@ export function buildServer() {
 function isValidWebhookSignature(body: string, signature: string, secret: string): boolean {
   const expected = createHmac("sha1", secret).update(body).digest("hex");
   const a = Buffer.from(expected);
-  const b = Buffer.from(signature);
+  const b = Buffer.from(signature.replace(/^sha1=/i, ""));
   return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function createMongoRuntimeState(): MongoRuntimeState {
+  if (env.NODE_ENV === "test" || !process.env.MONGODB_URI?.trim()) {
+    return { enabled: false, status: "inactive" };
+  }
+
+  const state: MongoRuntimeState = {
+    enabled: true,
+    status: "connecting"
+  };
+
+  const repository = getMongoDb(env.MONGODB_URI, env.MONGODB_DB)
+    .then(async (db) => {
+      await ensureIndexes(db);
+      state.status = "active";
+      logger.info({ db: env.MONGODB_DB }, "MongoDB persistence initialized");
+      return new VoicePersistenceRepository(db);
+    })
+    .catch((error) => {
+      state.status = "error";
+      state.last_error = error instanceof Error ? error.message : String(error);
+      logger.error({ err: error }, "MongoDB persistence initialization failed");
+      throw error;
+    });
+
+  repository.catch(() => {
+    // Avoid an unhandled rejection before the first request awaits the repository.
+  });
+
+  state.repository = repository;
+  return state;
+}
+
+function getRawBody(request: unknown): string {
+  const raw = (request as RawBodyRequest).rawBody;
+  if (typeof raw === "string") return raw;
+  return JSON.stringify((request as { body?: unknown }).body ?? {});
+}
+
+function readTraceId(headers: IncomingHttpHeaders): string {
+  return firstHeaderValue(headers["x-request-id"])?.trim() || createId("trace");
+}
+
+function createWebhookEventId(rawBody: string): string {
+  return `foodhub_${createHash("sha256").update(rawBody).digest("hex").slice(0, 32)}`;
+}
+
+function inferFoodHubWebhookAction(eventType?: string): string {
+  if (!eventType) return "record_only";
+  if (
+    eventType.includes("MENU") ||
+    eventType.includes("ENTITY") ||
+    eventType.includes("OPEN_CLOSE") ||
+    eventType.includes("STOCK")
+  ) {
+    return "menu_refreshed";
+  }
+  if (eventType.includes("ORDER")) return "order_reconcile_required";
+  return "record_only";
+}
+
+async function recordFoodHubWebhook(input: {
+  mongo: MongoRuntimeState;
+  traceId: string;
+  eventId: string;
+  eventType?: string;
+  tenantId: string;
+  storeId: string;
+  rawBody: string;
+  signature?: string;
+}): Promise<"recorded" | "duplicate"> {
+  if (!input.mongo.repository) {
+    const key = `foodhub:${input.eventId}`;
+    if (inMemoryWebhookIds.has(key)) return "duplicate";
+    inMemoryWebhookIds.add(key);
+    return "recorded";
+  }
+
+  const repo = await input.mongo.repository;
+  return repo.recordWebhookEvent({
+    provider: "foodhub",
+    event_id: input.eventId,
+    event_type: input.eventType,
+    tenant_id: input.tenantId,
+    store_id: input.storeId,
+    trace_id: input.traceId,
+    signature: input.signature,
+    raw_body_sha256: createHash("sha256").update(input.rawBody).digest("hex"),
+    raw_body: input.rawBody,
+    status: "RECEIVED",
+    received_at: new Date().toISOString()
+  });
+}
+
+async function markFoodHubWebhookProcessed(
+  mongo: MongoRuntimeState,
+  eventId: string,
+  status: "PROCESSED" | "FAILED",
+  action?: string,
+  error?: string
+): Promise<void> {
+  if (!mongo.repository) return;
+  const repo = await mongo.repository;
+  await repo.markWebhookProcessed({
+    provider: "foodhub",
+    event_id: eventId,
+    status,
+    action,
+    error
+  });
 }
 
 function buildAssistantUnavailableTwiml(): string {
@@ -455,6 +664,15 @@ function escapeXmlAttribute(value: string): string {
 }
 
 if (process.env.NODE_ENV !== "test") {
+  if (!productionEnvValidation.ok) {
+    logger.error({ validation: productionEnvValidation }, "voice bridge production environment is incomplete");
+    process.exit(1);
+  }
+
+  for (const warning of productionEnvValidation.warnings) {
+    logger.warn({ warning }, "voice bridge production environment warning");
+  }
+
   const app = buildServer();
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : env.VOICE_BRIDGE_PORT;
   app.listen({ port, host: "0.0.0.0" }).catch((error) => {

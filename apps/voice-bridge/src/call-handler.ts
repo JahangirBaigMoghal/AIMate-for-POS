@@ -53,7 +53,7 @@ export class CallHandler {
       store_id: msg.store_id,
       call_id: this.callId
     };
-    this.deps.router.startSession({
+    await this.deps.router.startSession({
       ...this.sessionScope,
       caller_phone: msg.caller_phone,
       language: msg.language,
@@ -195,7 +195,7 @@ export class CallHandler {
     }
 
     if (this.sessionScope) {
-      this.deps.router.endSession(this.sessionScope);
+      await this.deps.router.endSession(this.sessionScope);
     }
 
     try {

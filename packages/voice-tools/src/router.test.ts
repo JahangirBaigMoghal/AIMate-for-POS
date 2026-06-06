@@ -229,4 +229,86 @@ describe("VoiceToolRouter", () => {
     expect(payment.ok).toBe(false);
     if (!payment.ok) expect(payment.error_code).toBe("PAYMENT_AMOUNT_MISMATCH");
   });
+
+  it("blocks order submission when the operator kill switch is enabled", async () => {
+    const localRouter = new VoiceToolRouter({
+      foodhub: new FoodHubClient({
+        baseUrl: "https://developer.foodhub.com"
+      }),
+      paymentProvider: new MockPaymentProvider(),
+      telephonyProvider: new MockTelephonyProvider(),
+      menuEntities: [
+        {
+          tenant_id: "t1",
+          store_id: "s1",
+          menu_snapshot_id: "m1",
+          entity_type: "ITEM",
+          entity_id: "item_cola",
+          name: "Cola",
+          aliases: ["coke"],
+          price: 199,
+          fulfillment_modes: ["COLLECTION"],
+          stock_status: "AVAILABLE",
+          modifier_group_ids: [],
+          updated_at: new Date().toISOString()
+        }
+      ],
+      killSwitches: { orderCommit: true }
+    });
+
+    await localRouter.startSession({
+      call_id: "call_kill",
+      tenant_id: "t1",
+      store_id: "s1",
+      language: "en"
+    });
+    await localRouter.call("add_item_to_cart", {
+      call_id: "call_kill",
+      tenant_id: "t1",
+      store_id: "s1",
+      request_id: "req_add",
+      language: "en",
+      query: "coke"
+    });
+    await localRouter.call("set_fulfillment", {
+      call_id: "call_kill",
+      tenant_id: "t1",
+      store_id: "s1",
+      request_id: "req_fulfillment",
+      language: "en",
+      fulfillment_type: "COLLECTION"
+    });
+    await localRouter.call("set_customer_details", {
+      call_id: "call_kill",
+      tenant_id: "t1",
+      store_id: "s1",
+      request_id: "req_customer",
+      language: "en",
+      first_name: "Sam",
+      phone: "07123456789"
+    });
+    const confirm = await localRouter.call("confirm_order", {
+      call_id: "call_kill",
+      tenant_id: "t1",
+      store_id: "s1",
+      request_id: "req_confirm",
+      language: "en",
+      customer_confirmed: true,
+      payment_type: "CASH"
+    });
+    const orderAttemptId = confirm.ok ? (confirm.data as any).data.order_attempt_id : "";
+
+    const submit = await localRouter.call("create_foodhub_order", {
+      call_id: "call_kill",
+      tenant_id: "t1",
+      store_id: "s1",
+      request_id: "req_submit",
+      language: "en",
+      order_attempt_id: orderAttemptId,
+      customer_confirmed: true
+    });
+
+    expect(submit.ok).toBe(false);
+    if (!submit.ok) expect(submit.error_code).toBe("ORDER_COMMIT_DISABLED");
+  });
 });

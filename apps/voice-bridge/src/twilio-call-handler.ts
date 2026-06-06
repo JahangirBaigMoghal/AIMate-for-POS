@@ -128,7 +128,7 @@ export class TwilioCallHandler {
       store_id: params.storeId,
       call_id: this.callSid ?? `twilio-${Date.now()}`
     };
-    this.deps.router.startSession({
+    await this.deps.router.startSession({
       ...this.sessionScope,
       language: params.language,
       prompt_hash: hash
@@ -263,7 +263,7 @@ export class TwilioCallHandler {
     this.pendingAudioBase64 = [];
 
     if (this.sessionScope) {
-      this.deps.router.endSession(this.sessionScope);
+      await this.deps.router.endSession(this.sessionScope);
     }
   }
 

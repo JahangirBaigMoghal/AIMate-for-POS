@@ -1,14 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createHmac } from "node:crypto";
 
 const ENV_KEYS = [
   "NODE_ENV",
   "GEMINI_API_KEY",
   "GEMINI_LIVE_MODEL",
   "FOODHUB_DEFAULT_STORE_ID",
+  "FOODHUB_WEBHOOK_SECRET",
+  "MONGODB_URI",
+  "MONGODB_DB",
   "REDIS_URL",
   "TELEPHONY_PROVIDER",
   "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN"
+  "TWILIO_AUTH_TOKEN",
+  "AIMATE_KILL_AI_ANSWERING",
+  "AIMATE_KILL_ORDER_COMMIT",
+  "AIMATE_KILL_PAYMENT_LINKS",
+  "AIMATE_KILL_HANDOFF"
 ] as const;
 
 type EnvOverrides = Partial<Record<(typeof ENV_KEYS)[number], string>>;
@@ -73,6 +81,76 @@ describe("voice bridge", () => {
     expect(buildTwilioStreamUrl({ host: "localhost:4100" })).toBe(
       "ws://localhost:4100/ws/voice-twilio"
     );
+  });
+
+  it("exposes kill switch state in readiness", async () => {
+    const { buildServer } = await importServer({
+      GEMINI_API_KEY: "test-key",
+      AIMATE_KILL_ORDER_COMMIT: "true",
+      AIMATE_KILL_PAYMENT_LINKS: "1"
+    });
+    const app = buildServer();
+
+    const response = await app.inject({ method: "GET", url: "/ready" });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().kill_switches.order_commit).toBe(true);
+    expect(response.json().kill_switches.payment_links).toBe(true);
+    await app.close();
+  });
+
+  it("uses raw body signatures and records duplicate FoodHub webhooks idempotently", async () => {
+    const secret = "webhook-secret";
+    const rawBody = '{ "event_id": "evt_1", "event_type": "MENU_UPDATED", "store_id": "s1" }';
+    const signature = createHmac("sha1", secret).update(rawBody).digest("hex");
+    const { buildServer } = await importServer({
+      FOODHUB_WEBHOOK_SECRET: secret,
+      FOODHUB_DEFAULT_STORE_ID: "s1"
+    });
+    const app = buildServer();
+
+    const first = await app.inject({
+      method: "POST",
+      url: "/api/webhooks/foodhub",
+      headers: {
+        "content-type": "application/json",
+        "x-webhook-signature": signature
+      },
+      payload: rawBody
+    });
+    const second = await app.inject({
+      method: "POST",
+      url: "/api/webhooks/foodhub",
+      headers: {
+        "content-type": "application/json",
+        "x-webhook-signature": signature
+      },
+      payload: rawBody
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(first.json().action).toBe("menu_refreshed");
+    expect(second.statusCode).toBe(200);
+    expect(second.json().duplicate).toBe(true);
+    await app.close();
+  });
+
+  it("rejects FoodHub webhooks with invalid raw body signatures", async () => {
+    const { buildServer } = await importServer({ FOODHUB_WEBHOOK_SECRET: "webhook-secret" });
+    const app = buildServer();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/webhooks/foodhub",
+      headers: {
+        "content-type": "application/json",
+        "x-webhook-signature": "bad-signature"
+      },
+      payload: '{"event_id":"evt_bad"}'
+    });
+
+    expect(response.statusCode).toBe(401);
+    await app.close();
   });
 });
 

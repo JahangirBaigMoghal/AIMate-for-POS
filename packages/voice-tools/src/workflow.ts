@@ -66,11 +66,94 @@ export type OrderSubmissionResult = {
   resource_uri?: string;
 };
 
+export type VoiceWorkflowStore = {
+  startSession(input: SessionStartInput): VoiceOrderSession | Promise<VoiceOrderSession>;
+  endSession(input: { tenant_id: string; store_id: string; call_id: string }): void | Promise<void>;
+  getSession(input: { tenant_id: string; store_id: string; call_id: string }): VoiceOrderSession | undefined | Promise<VoiceOrderSession | undefined>;
+  addItem(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+    language: string;
+    entity: MenuEntity;
+    quantity: number;
+    notes?: string;
+    fulfillment_type?: FulfillmentType;
+  }): CartSnapshot | Promise<CartSnapshot>;
+  removeItem(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+    cart_line_id?: string;
+    item_id?: string;
+    quantity?: number;
+  }): CartSnapshot | Promise<CartSnapshot>;
+  setFulfillment(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+    language: string;
+    fulfillment_type: FulfillmentType;
+  }): CartSnapshot | Promise<CartSnapshot>;
+  setCustomer(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+    language: string;
+    customer: CustomerDetails;
+  }): CartSnapshot | Promise<CartSnapshot>;
+  setDeliveryAddress(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+    language: string;
+    delivery_address: DeliveryAddress;
+  }): CartSnapshot | Promise<CartSnapshot>;
+  snapshot(input: { tenant_id: string; store_id: string; call_id: string }): CartSnapshot | Promise<CartSnapshot>;
+  confirmOrder(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+    payment_type: "CASH" | "CARD" | "ONLINE";
+  }): ConfirmedOrderAttempt | Promise<ConfirmedOrderAttempt>;
+  getAttempt(input: {
+    tenant_id: string;
+    store_id: string;
+    order_attempt_id: string;
+  }): ConfirmedOrderAttempt | undefined | Promise<ConfirmedOrderAttempt | undefined>;
+  markSubmitting(input: { tenant_id: string; store_id: string; order_attempt_id: string }): void | Promise<void>;
+  markSubmitted(input: {
+    tenant_id: string;
+    store_id: string;
+    order_attempt_id: string;
+    foodhub_order_id: string;
+    resource_uri: string;
+  }): ConfirmedOrderAttempt | Promise<ConfirmedOrderAttempt>;
+  markFailed(input: {
+    tenant_id: string;
+    store_id: string;
+    order_attempt_id: string;
+    error: unknown;
+  }): ConfirmedOrderAttempt | Promise<ConfirmedOrderAttempt>;
+  recordPayment(input: {
+    tenant_id: string;
+    store_id: string;
+    order_attempt_id: string;
+    provider: string;
+    payment_attempt_id: string;
+    idempotency_key: string;
+    amount: number;
+    currency: string;
+    url?: string;
+    expires_at?: string;
+  }): PaymentAttempt | Promise<PaymentAttempt>;
+};
+
 function sessionKey(input: { tenant_id: string; store_id: string; call_id: string }) {
   return `${input.tenant_id}:${input.store_id}:${input.call_id}`;
 }
 
-export class InMemoryVoiceWorkflowStore {
+export class InMemoryVoiceWorkflowStore implements VoiceWorkflowStore {
   private readonly sessions = new Map<string, VoiceOrderSession>();
   private readonly attempts = new Map<string, ConfirmedOrderAttempt>();
   private readonly payments = new Map<string, PaymentAttempt>();
