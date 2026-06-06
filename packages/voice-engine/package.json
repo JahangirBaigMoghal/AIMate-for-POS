@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@aimate/domain": "0.1.0",
-    "@aimate/shared": "0.1.0"
+    "@aimate/shared": "0.1.0",
+    "ws": "^8.18.3",
+    "@types/ws": "^8.18.1"
   }
 }
