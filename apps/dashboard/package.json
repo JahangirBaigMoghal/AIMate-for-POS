@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:dashboard": "next dev",
     "build": "next build",
+    "build:dashboard": "next build",
     "start": "next start"
   },
   "dependencies": {
