@@ -9,6 +9,7 @@ Enterprise AI voice ordering foundation for FoodHub POS integration.
 - Next.js dashboard in `apps/dashboard`
 - Render-ready WebSocket voice bridge in `apps/voice-bridge`
 - Shared TypeScript packages for domain models, FoodHub API access, RAG/menu search, payment mocks, telephony mocks, datastore locks, and voice tools
+- Phase I-III implementation guide in `docs/phase-1-3-testing-and-credentials.md`
 
 ## Local setup
 
@@ -42,3 +43,5 @@ The scaffold currently passes:
 - Next.js production build
 - Voice bridge health and WebSocket menu-search smoke test
 - npm audit with zero moderate-or-higher vulnerabilities
+
+Current Phase I-III implementation adds mock-safe order lifecycle tools, menu catalog refresh structure, and voice regression scenarios. FoodHub writes remain in clearly labeled mock mode until real FoodHub credentials are configured.

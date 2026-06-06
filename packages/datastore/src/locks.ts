@@ -1,3 +1,6 @@
+import type { Redis } from "ioredis";
+import { createId } from "@aimate/shared";
+
 export interface Lock {
   release(): Promise<void>;
 }
@@ -21,3 +24,29 @@ export class InMemoryLockManager implements LockManager {
     };
   }
 }
+
+export class RedisLockManager implements LockManager {
+  constructor(private readonly redis: Redis) {}
+
+  async acquire(key: string, ttlMs: number): Promise<Lock | undefined> {
+    const value = createId("lock");
+    const result = await this.redis.set(key, value, "PX", ttlMs, "NX");
+    if (result !== "OK") {
+      return undefined;
+    }
+
+    return {
+      release: async () => {
+        const script = `
+          if redis.call("get", KEYS[1]) == ARGV[1] then
+            return redis.call("del", KEYS[1])
+          else
+            return 0
+          end
+        `;
+        await this.redis.eval(script, 1, key, value);
+      }
+    };
+  }
+}
+

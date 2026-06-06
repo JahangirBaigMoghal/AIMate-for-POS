@@ -20,6 +20,7 @@ export async function POST(request: Request) {
   return Response.json({
     ok: true,
     received: true,
+    action: inferAction(event),
     event
   });
 }
@@ -29,4 +30,19 @@ function isValidSignature(body: string, signature: string, secret: string): bool
   const a = Buffer.from(expected);
   const b = Buffer.from(signature);
   return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function inferAction(event: unknown): string {
+  if (!event || typeof event !== "object") return "record_only";
+  const eventType = String((event as { event_type?: unknown }).event_type ?? "");
+  if (eventType.includes("MENU") || eventType.includes("ENTITY") || eventType.includes("STOCK")) {
+    return "refresh_menu_snapshot";
+  }
+  if (eventType.includes("OPEN_CLOSE") || eventType.includes("HOURS")) {
+    return "refresh_store_context";
+  }
+  if (eventType.includes("ORDER")) {
+    return "reconcile_order";
+  }
+  return "record_only";
 }

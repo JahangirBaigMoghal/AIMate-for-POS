@@ -20,3 +20,11 @@ export class IntegrationError extends AimateError {
     super(message, "INTEGRATION_ERROR", details);
   }
 }
+
+export async function safeText(response: Response): Promise<string> {
+  try {
+    return await response.text();
+  } catch {
+    return "";
+  }
+}

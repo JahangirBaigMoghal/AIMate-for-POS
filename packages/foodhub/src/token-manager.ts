@@ -1,4 +1,4 @@
-import { IntegrationError } from "@aimate/shared";
+import { IntegrationError, safeText } from "@aimate/shared";
 
 export type FoodHubTokenRequest = {
   clientId: string;
@@ -92,10 +92,3 @@ export class FoodHubTokenManager {
   }
 }
 
-async function safeText(response: Response): Promise<string> {
-  try {
-    return await response.text();
-  } catch {
-    return "";
-  }
-}

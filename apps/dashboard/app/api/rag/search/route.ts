@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { loadJsonlChunks, searchChunks } from "@aimate/rag";
 
@@ -11,10 +12,23 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: "Missing q query parameter" }, { status: 400 });
   }
 
-  const chunksPath = path.join(process.cwd(), "..", "..", "rag", "foodhub", "normalized", "chunks.jsonl");
+  const chunksPath = findChunksPath();
   const chunks = await loadJsonlChunks(chunksPath);
   return Response.json({
     ok: true,
     results: searchChunks(chunks, query, { type, tag, limit: 8, minScore: 2 })
   });
+}
+
+function findChunksPath(): string {
+  const candidates = [
+    path.join(process.cwd(), "rag", "foodhub", "normalized", "chunks.jsonl"),
+    path.join(process.cwd(), "..", "..", "rag", "foodhub", "normalized", "chunks.jsonl"),
+    path.join(process.cwd(), "..", "rag", "foodhub", "normalized", "chunks.jsonl")
+  ];
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (!found) {
+    throw new Error("FoodHub RAG chunks file was not found in the deployment bundle.");
+  }
+  return found;
 }

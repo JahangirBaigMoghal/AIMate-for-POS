@@ -8,9 +8,14 @@ export type MenuSearchResult = MenuEntity & {
 export class MenuIndex {
   constructor(private readonly entities: MenuEntity[]) {}
 
-  search(query: string, limit = 5): MenuSearchResult[] {
+  search(query: string, limit = 5, fulfillmentType?: string): MenuSearchResult[] {
     const normalizedQuery = normalize(query);
-    return this.entities
+    const eligible = fulfillmentType
+      ? this.entities.filter(
+          (e) => e.fulfillment_modes.length === 0 || e.fulfillment_modes.includes(fulfillmentType)
+        )
+      : this.entities;
+    return eligible
       .map((entity) => {
         const candidates = [entity.name, entity.name_localized, ...entity.aliases]
           .filter(Boolean)

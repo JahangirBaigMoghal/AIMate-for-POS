@@ -21,7 +21,8 @@
       "@aimate/datastore": ["packages/datastore/src/index.ts"],
       "@aimate/payments": ["packages/payments/src/index.ts"],
       "@aimate/voice-tools": ["packages/voice-tools/src/index.ts"],
-      "@aimate/telephony": ["packages/telephony/src/index.ts"]
+      "@aimate/telephony": ["packages/telephony/src/index.ts"],
+      "@aimate/voice-engine": ["packages/voice-engine/src/index.ts"]
     }
   }
 }

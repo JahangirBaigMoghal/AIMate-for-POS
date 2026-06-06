@@ -3,7 +3,7 @@ import {
   CreateFoodHubOrderSchema,
   type CreateFoodHubOrder
 } from "@aimate/domain";
-import { IntegrationError } from "@aimate/shared";
+import { IntegrationError, safeText, CircuitBreaker, retryWithBackoff } from "@aimate/shared";
 import { FoodHubTokenManager } from "./token-manager";
 
 export type FoodHubClientConfig = {
@@ -17,11 +17,17 @@ export type FoodHubClientConfig = {
 export class FoodHubClient {
   private readonly tokenManager: FoodHubTokenManager;
   private readonly fetchImpl: typeof fetch;
+  private readonly circuitBreaker: CircuitBreaker;
 
   constructor(private readonly config: FoodHubClientConfig) {
     this.fetchImpl = config.fetchImpl ?? fetch;
     this.tokenManager =
       config.tokenManager ?? new FoodHubTokenManager(config.baseUrl, undefined, this.fetchImpl);
+    this.circuitBreaker = new CircuitBreaker();
+  }
+
+  hasCredentials(): boolean {
+    return Boolean(this.config.clientId && this.config.clientSecret);
   }
 
   async getStore(storeId: string): Promise<unknown> {
@@ -76,6 +82,17 @@ export class FoodHubClient {
     method?: string;
     body?: unknown;
   }): Promise<unknown> {
+    return this.circuitBreaker.execute(() =>
+      retryWithBackoff(() => this.performRequest(input), 3, 50)
+    );
+  }
+
+  private async performRequest(input: {
+    path: string;
+    scope: string;
+    method?: string;
+    body?: unknown;
+  }): Promise<unknown> {
     if (!this.config.clientId || !this.config.clientSecret) {
       throw new IntegrationError("FoodHub credentials are not configured", {
         scope: input.scope,
@@ -112,10 +129,3 @@ export class FoodHubClient {
   }
 }
 
-async function safeText(response: Response): Promise<string> {
-  try {
-    return await response.text();
-  } catch {
-    return "";
-  }
-}

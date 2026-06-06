@@ -19,7 +19,8 @@ export default defineConfig({
       "@aimate/datastore": fileURLToPath(new URL("./packages/datastore/src/index.ts", import.meta.url)),
       "@aimate/payments": fileURLToPath(new URL("./packages/payments/src/index.ts", import.meta.url)),
       "@aimate/voice-tools": fileURLToPath(new URL("./packages/voice-tools/src/index.ts", import.meta.url)),
-      "@aimate/telephony": fileURLToPath(new URL("./packages/telephony/src/index.ts", import.meta.url))
+      "@aimate/telephony": fileURLToPath(new URL("./packages/telephony/src/index.ts", import.meta.url)),
+      "@aimate/voice-engine": fileURLToPath(new URL("./packages/voice-engine/src/index.ts", import.meta.url))
     }
   }
 });
