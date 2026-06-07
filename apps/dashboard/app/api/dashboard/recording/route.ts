@@ -45,7 +45,10 @@ export async function GET(request: Request) {
       }
     } catch (_) {}
 
-    errorMessage += ` [Diagnostics: Config SID=${accountSid}, URL SID=${urlAccountSid}, Match=${accountSid === urlAccountSid ? "yes" : "no"}, AuthTokenLen=${authToken.length}]`;
+    const configSid = accountSid;
+    const urlSid = urlAccountSid || "none";
+    const tokenMasked = authToken ? `${authToken.substring(0, 4)}...${authToken.substring(authToken.length - 4)}` : "none";
+    errorMessage += ` [Diagnostics: Config SID=${configSid}, URL SID=${urlSid}, Match=${configSid === urlSid ? "yes" : "no"}, AuthTokenLen=${authToken.length}, AuthTokenMask=${tokenMasked}]`;
 
     return NextResponse.json({ error: errorMessage }, { status: res.status >= 400 && res.status < 600 ? res.status : 500 });
   } catch (error: any) {
