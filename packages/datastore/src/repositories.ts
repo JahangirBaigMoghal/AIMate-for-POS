@@ -130,11 +130,12 @@ export class VoicePersistenceRepository {
   constructor(private readonly db: Db) {}
 
   async upsertCallSession(session: CallSessionDoc): Promise<void> {
+    const { started_at, ...setFields } = session;
     await this.scoped("call_sessions").updateOne(
       scopeFilter(session, { call_id: session.call_id }),
       {
         $setOnInsert: { started_at: session.started_at },
-        $set: session
+        $set: setFields
       },
       { upsert: true }
     );
@@ -152,22 +153,24 @@ export class VoicePersistenceRepository {
   }
 
   async upsertCartSnapshot(cart: CartSnapshotDoc): Promise<void> {
+    const { created_at, ...setFields } = cart;
     await this.scoped("cart_snapshots").updateOne(
       scopeFilter(cart, { cart_id: cart.cart_id }),
       {
         $setOnInsert: { created_at: cart.created_at },
-        $set: cart
+        $set: setFields
       },
       { upsert: true }
     );
   }
 
   async upsertOrderAttempt(attempt: OrderAttemptDoc): Promise<void> {
+    const { created_at, ...setFields } = attempt;
     await this.scoped("order_attempts").updateOne(
       scopeFilter(attempt, { order_attempt_id: attempt.order_attempt_id }),
       {
         $setOnInsert: { created_at: attempt.created_at },
-        $set: attempt
+        $set: setFields
       },
       { upsert: true }
     );
@@ -191,11 +194,12 @@ export class VoicePersistenceRepository {
   }
 
   async upsertPaymentAttempt(payment: PaymentAttemptDoc): Promise<void> {
+    const { created_at, ...setFields } = payment;
     await this.scoped("payment_attempts").updateOne(
       scopeFilter(payment, { payment_attempt_id: payment.payment_attempt_id }),
       {
         $setOnInsert: { created_at: payment.created_at },
-        $set: payment
+        $set: setFields
       },
       { upsert: true }
     );
@@ -236,33 +240,36 @@ export class VoicePersistenceRepository {
   }
 
   async upsertPromptVersion(prompt: PromptVersionDoc): Promise<void> {
+    const { created_at, ...setFields } = prompt;
     await this.scoped("prompt_versions").updateOne(
       scopeFilter(prompt, { prompt_hash: prompt.prompt_hash }),
       {
         $setOnInsert: { created_at: prompt.created_at },
-        $set: prompt
+        $set: setFields
       },
       { upsert: true }
     );
   }
 
   async upsertMenuSnapshot(snapshot: MenuSnapshotDoc): Promise<void> {
+    const { refreshed_at, ...setFields } = snapshot;
     await this.scoped("menu_snapshots").updateOne(
       scopeFilter(snapshot, { menu_snapshot_id: snapshot.menu_snapshot_id }),
       {
         $setOnInsert: { refreshed_at: snapshot.refreshed_at },
-        $set: snapshot
+        $set: setFields
       },
       { upsert: true }
     );
   }
 
   async upsertStoreConfig(config: StoreConfigDoc): Promise<void> {
+    const { created_at, ...setFields } = config;
     await this.scoped("store_configs").updateOne(
       scopeFilter(config, { version: config.version }),
       {
         $setOnInsert: { created_at: config.created_at },
-        $set: config
+        $set: setFields
       },
       { upsert: true }
     );
