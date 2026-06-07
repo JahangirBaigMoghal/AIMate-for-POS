@@ -13,6 +13,7 @@ export type CallSessionDoc = TenantStoreScope & {
   caller_phone?: string;
   language: string;
   prompt_hash?: string;
+  payment_type?: string;
   started_at: string;
   updated_at: string;
   ended_at?: string;
@@ -275,10 +276,50 @@ export class VoicePersistenceRepository {
     );
   }
 
+  async findCallSession(tenantId: string, storeId: string, callId: string): Promise<CallSessionDoc | null> {
+    return this.scoped<CallSessionDoc>("call_sessions").findOne({
+      tenant_id: tenantId,
+      store_id: storeId,
+      call_id: callId
+    });
+  }
+
+  async findCartSnapshot(tenantId: string, storeId: string, callId: string): Promise<CartSnapshotDoc | null> {
+    return this.scoped<CartSnapshotDoc>("cart_snapshots").findOne({
+      tenant_id: tenantId,
+      store_id: storeId,
+      call_id: callId
+    });
+  }
+
+  async findOrderAttempt(tenantId: string, storeId: string, orderAttemptId: string): Promise<OrderAttemptDoc | null> {
+    return this.scoped<OrderAttemptDoc>("order_attempts").findOne({
+      tenant_id: tenantId,
+      store_id: storeId,
+      order_attempt_id: orderAttemptId
+    });
+  }
+
+  async findPaymentAttempt(tenantId: string, storeId: string, paymentAttemptId: string): Promise<PaymentAttemptDoc | null> {
+    return this.scoped<PaymentAttemptDoc>("payment_attempts").findOne({
+      tenant_id: tenantId,
+      store_id: storeId,
+      payment_attempt_id: paymentAttemptId
+    });
+  }
+
+  async findWebhookEvent(provider: string, eventId: string): Promise<WebhookEventDoc | null> {
+    return this.db.collection<WebhookEventDoc>("webhook_events").findOne({
+      provider,
+      event_id: eventId
+    });
+  }
+
   private scoped<T extends TenantStoreScope>(collectionName: string): Collection<T> {
     return this.db.collection<T>(collectionName);
   }
 }
+
 
 export class CallSessionRepository {
   constructor(private readonly db: Db) {}

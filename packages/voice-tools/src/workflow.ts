@@ -195,6 +195,15 @@ export class InMemoryVoiceWorkflowStore implements VoiceWorkflowStore {
     return this.getSession(input) ?? this.startSession(input);
   }
 
+  restoreSession(session: VoiceOrderSession): void {
+    this.sessions.set(sessionKey(session), session);
+  }
+
+  restoreAttempt(attempt: ConfirmedOrderAttempt): void {
+    this.attempts.set(attempt.order_attempt_id, attempt);
+  }
+
+
   addItem(input: {
     tenant_id: string;
     store_id: string;

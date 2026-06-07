@@ -1,5 +1,8 @@
 import type {
   AuditEventDoc,
+  CallSessionDoc,
+  CartSnapshotDoc,
+  OrderAttemptDoc,
   PaymentAttemptDoc,
   VoicePersistenceRepository
 } from "@aimate/datastore";
@@ -18,7 +21,9 @@ import type {
   CustomerDetails,
   DeliveryAddress,
   MenuEntity,
-  PaymentAttempt
+  PaymentAttempt,
+  PriceBreakdown,
+  CreateFoodHubOrder
 } from "@aimate/domain";
 
 export type DurableVoiceWorkflowStoreConfig = {
@@ -81,8 +86,37 @@ export class DurableVoiceWorkflowStore implements VoiceWorkflowStore {
     });
   }
 
-  getSession(input: { tenant_id: string; store_id: string; call_id: string }) {
-    return this.memory.getSession(input);
+  async getSession(input: {
+    tenant_id: string;
+    store_id: string;
+    call_id: string;
+  }): Promise<VoiceOrderSession | undefined> {
+    const memSession = this.memory.getSession(input);
+    if (memSession) return memSession;
+
+    const repo = await this.repository();
+    const sessionDoc = await repo.findCallSession(input.tenant_id, input.store_id, input.call_id);
+    if (!sessionDoc) return undefined;
+
+    const cartDoc = await repo.findCartSnapshot(input.tenant_id, input.store_id, input.call_id);
+    if (!cartDoc) return undefined;
+
+    const restored: VoiceOrderSession = {
+      call_id: sessionDoc.call_id,
+      tenant_id: sessionDoc.tenant_id,
+      store_id: sessionDoc.store_id,
+      language: sessionDoc.language,
+      caller_phone: sessionDoc.caller_phone,
+      prompt_hash: sessionDoc.prompt_hash,
+      status: sessionDoc.status as VoiceOrderSession["status"],
+      cart: cartDoc.cart as any,
+      payment_type: sessionDoc.payment_type as "CASH" | "CARD" | "ONLINE" | undefined,
+      created_at: sessionDoc.started_at,
+      updated_at: sessionDoc.updated_at
+    };
+
+    this.memory.restoreSession(restored);
+    return restored;
   }
 
   async addItem(input: {
@@ -163,7 +197,8 @@ export class DurableVoiceWorkflowStore implements VoiceWorkflowStore {
     return snapshot;
   }
 
-  snapshot(input: { tenant_id: string; store_id: string; call_id: string }) {
+  async snapshot(input: { tenant_id: string; store_id: string; call_id: string }): Promise<CartSnapshot> {
+    await this.getSession(input);
     return this.memory.snapshot(input);
   }
 
@@ -187,8 +222,38 @@ export class DurableVoiceWorkflowStore implements VoiceWorkflowStore {
     return attempt;
   }
 
-  getAttempt(input: { tenant_id: string; store_id: string; order_attempt_id: string }) {
-    return this.memory.getAttempt(input);
+  async getAttempt(input: {
+    tenant_id: string;
+    store_id: string;
+    order_attempt_id: string;
+  }): Promise<ConfirmedOrderAttempt | undefined> {
+    const memAttempt = this.memory.getAttempt(input);
+    if (memAttempt) return memAttempt;
+
+    const repo = await this.repository();
+    const attemptDoc = await repo.findOrderAttempt(input.tenant_id, input.store_id, input.order_attempt_id);
+    if (!attemptDoc) return undefined;
+
+    const restored: ConfirmedOrderAttempt = {
+      tenant_id: attemptDoc.tenant_id,
+      store_id: attemptDoc.store_id,
+      order_attempt_id: attemptDoc.order_attempt_id,
+      call_id: attemptDoc.call_id,
+      external_reference_id: attemptDoc.external_reference_id,
+      state: attemptDoc.state as ConfirmedOrderAttempt["state"],
+      cart_version: attemptDoc.cart_version,
+      payment_type: attemptDoc.payment_type as "CASH" | "CARD" | "ONLINE",
+      price: attemptDoc.price as PriceBreakdown,
+      payload: attemptDoc.payload as CreateFoodHubOrder,
+      foodhub_order_id: attemptDoc.foodhub_order_id,
+      resource_uri: attemptDoc.resource_uri,
+      last_error: attemptDoc.last_error,
+      created_at: attemptDoc.created_at,
+      updated_at: attemptDoc.updated_at
+    };
+
+    this.memory.restoreAttempt(restored);
+    return restored;
   }
 
   async markSubmitting(input: { tenant_id: string; store_id: string; order_attempt_id: string }): Promise<void> {
@@ -280,6 +345,7 @@ export class DurableVoiceWorkflowStore implements VoiceWorkflowStore {
         caller_phone: session.caller_phone,
         language: session.language,
         prompt_hash: session.prompt_hash,
+        payment_type: session.payment_type,
         started_at: session.created_at,
         updated_at: session.updated_at,
         ended_at: session.status === "ENDED" ? session.updated_at : undefined
