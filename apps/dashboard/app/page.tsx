@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCall, setSelectedCall] = useState<any>(null);
+  const [resolvedRecordingUrl, setResolvedRecordingUrl] = useState<string | null>(null);
   
   // Settings Form State
   const [settingsForm, setSettingsForm] = useState({
@@ -116,6 +117,22 @@ export default function Dashboard() {
     const timer = setInterval(fetchData, 8000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (selectedCall?.recording_url) {
+      setResolvedRecordingUrl(null);
+      fetch(`/api/dashboard/recording?url=${encodeURIComponent(selectedCall.recording_url)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.url) setResolvedRecordingUrl(data.url);
+        })
+        .catch(err => {
+          console.error("Error resolving recording url:", err);
+        });
+    } else {
+      setResolvedRecordingUrl(null);
+    }
+  }, [selectedCall]);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -732,7 +749,11 @@ export default function Dashboard() {
               {selectedCall.recording_url && (
                 <div style={{ marginTop: "16px", marginBottom: "16px", padding: "16px", backgroundColor: "var(--bg)", borderRadius: "var(--border-radius)", border: "1px solid var(--line)" }}>
                   <strong style={{ display: "block", marginBottom: "8px", fontSize: "13px" }}>Call Recording Playback</strong>
-                  <audio src={selectedCall.recording_url} controls style={{ width: "100%" }} />
+                  {resolvedRecordingUrl ? (
+                    <audio src={resolvedRecordingUrl} controls style={{ width: "100%" }} />
+                  ) : (
+                    <div style={{ fontSize: "13px", color: "var(--muted)" }}>Loading recording...</div>
+                  )}
                 </div>
               )}
 
