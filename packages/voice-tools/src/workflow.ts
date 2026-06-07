@@ -42,6 +42,7 @@ export type VoiceOrderSession = SessionStartInput & {
     | "ENDED";
   cart: Cart;
   payment_type?: "CASH" | "CARD" | "ONLINE";
+  recording_url?: string;
   created_at: string;
   updated_at: string;
 };

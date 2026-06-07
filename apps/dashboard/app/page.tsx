@@ -396,6 +396,11 @@ export default function Dashboard() {
                         <span className={`badge ${session.status === "ENDED" ? "badge-success" : "badge-purple"}`}>
                           {session.status}
                         </span>
+                        {session.recording_url && (
+                          <span className="badge badge-info" style={{ marginLeft: "6px", backgroundColor: "var(--accent)" }}>
+                            Recorded
+                          </span>
+                        )}
                       </td>
                       <td style={{ maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {session.summary || "No items"}
@@ -701,7 +706,35 @@ export default function Dashboard() {
                   <strong>Payment Type</strong>
                   <span>{selectedCall.payment_type || "Not Selected"}</span>
                 </div>
+                {selectedCall.ended_at && (
+                  <>
+                    <div className="detail-item">
+                      <strong>Ended At</strong>
+                      <span>{new Date(selectedCall.ended_at).toLocaleString()}</span>
+                    </div>
+                    <div className="detail-item">
+                      <strong>Duration</strong>
+                      <span>
+                        {(() => {
+                          const start = new Date(selectedCall.started_at || selectedCall.created_at).getTime();
+                          const end = new Date(selectedCall.ended_at).getTime();
+                          const diffSec = Math.max(0, Math.floor((end - start) / 1000));
+                          const mins = Math.floor(diffSec / 60);
+                          const secs = diffSec % 60;
+                          return `${mins}m ${secs}s`;
+                        })()}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
+
+              {selectedCall.recording_url && (
+                <div style={{ marginTop: "16px", marginBottom: "16px", padding: "16px", backgroundColor: "var(--bg)", borderRadius: "var(--border-radius)", border: "1px solid var(--line)" }}>
+                  <strong style={{ display: "block", marginBottom: "8px", fontSize: "13px" }}>Call Recording Playback</strong>
+                  <audio src={selectedCall.recording_url} controls style={{ width: "100%" }} />
+                </div>
+              )}
 
               {selectedCall.cart ? (
                 <div className="cart-summary-box">

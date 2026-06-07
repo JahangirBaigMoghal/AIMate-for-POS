@@ -60,10 +60,11 @@ export class TwilioCallHandler {
         const tenantId = customParams.tenant_id ?? "demo";
         const storeId = customParams.store_id ?? "demo-store";
         const language = customParams.language ?? "en";
+        const callerPhone = customParams.caller_phone;
 
-        this.log.info({ tenantId, storeId, language }, "Twilio Media Stream started");
+        this.log.info({ tenantId, storeId, language, callerPhone }, "Twilio Media Stream started");
 
-        await this.startGeminiSession({ tenantId, storeId, language });
+        await this.startGeminiSession({ tenantId, storeId, language, callerPhone });
         break;
       }
 
@@ -106,6 +107,7 @@ export class TwilioCallHandler {
     tenantId: string;
     storeId: string;
     language: string;
+    callerPhone?: string;
   }): Promise<void> {
     if (!this.deps.geminiApiKey.trim()) {
       this.log.error("GEMINI_API_KEY is not configured for Twilio call");
@@ -131,7 +133,8 @@ export class TwilioCallHandler {
     await this.deps.router.startSession({
       ...this.sessionScope,
       language: params.language,
-      prompt_hash: hash
+      prompt_hash: hash,
+      caller_phone: params.callerPhone
     });
 
     const { buildToolDeclarations } = await import("@aimate/voice-engine");

@@ -14,6 +14,7 @@ export type CallSessionDoc = TenantStoreScope & {
   language: string;
   prompt_hash?: string;
   payment_type?: string;
+  recording_url?: string;
   started_at: string;
   updated_at: string;
   ended_at?: string;

@@ -1,6 +1,7 @@
 import websocket from "@fastify/websocket";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type { IncomingHttpHeaders } from "node:http";
+import { parse as parseQuery } from "node:querystring";
 import { Redis } from "ioredis";
 import { FoodHubClient, FoodHubTokenManager, RedisTokenStore } from "@aimate/foodhub";
 import { MockPaymentProvider, StripePaymentProvider } from "@aimate/payments";
@@ -96,9 +97,15 @@ export function buildServer() {
     }
   });
 
-  // Support Twilio POST webhooks by registering a dummy parser for form-urlencoded content type
-  app.addContentTypeParser("application/x-www-form-urlencoded", (request, payload, done) => {
-    done(null, {});
+  // Support Twilio POST webhooks by parsing form-urlencoded content type
+  app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (request, body, done) => {
+    try {
+      const rawBody = Buffer.isBuffer(body) ? body.toString("utf8") : body;
+      (request as typeof request & RawBodyRequest).rawBody = rawBody;
+      done(null, parseQuery(rawBody));
+    } catch (error) {
+      done(error as Error, undefined);
+    }
   });
 
   // Setup Redis components if URL exists
@@ -315,9 +322,11 @@ export function buildServer() {
 
   app.post("/api/telephony/twilio/inbound", async (request, reply) => {
     const query = request.query as Record<string, string>;
+    const body = (request.body ?? {}) as Record<string, string>;
     const tenantId = query.tenant_id ?? "demo";
     const storeId = query.store_id ?? env.FOODHUB_DEFAULT_STORE_ID ?? "demo-store";
     const language = query.language ?? "en";
+    const callerPhone = body.From ?? query.caller_phone ?? "";
 
     if (env.AIMATE_KILL_AI_ANSWERING) {
       logger.warn({ tenant_id: tenantId, store_id: storeId }, "Twilio inbound call rejected by AI answering kill switch");
@@ -333,14 +342,30 @@ export function buildServer() {
 
     const wsUrl = buildTwilioStreamUrl(request.headers);
 
+    // Build the HTTP callback URL for the call recording completion webhook
+    const host = firstHeaderValue(request.headers.host)?.trim() || "localhost";
+    const forwardedProto = firstHeaderValue(request.headers["x-forwarded-proto"])
+      ?.split(",")[0]
+      ?.trim()
+      .toLowerCase();
+    const forwardedSsl = firstHeaderValue(request.headers["x-forwarded-ssl"])?.trim().toLowerCase();
+    const isSecureProxy = forwardedProto === "https" || forwardedSsl === "on";
+    const isLocalHost = /^(localhost|127\.0\.0\.1|\[::1\]|::1)(:\d+)?$/i.test(host);
+    const protocol = isSecureProxy || !isLocalHost ? "https" : "http";
+    const recordingCallbackUrl = `${protocol}://${host}/api/telephony/twilio/recording`;
+
     const twiml = `
 <Response>
+  <Start>
+    <Recording recordingStatusCallback="${escapeXmlAttribute(recordingCallbackUrl)}" />
+  </Start>
   <Say>Hello! Welcome to our restaurant ordering system. Connecting you to the ordering assistant now.</Say>
   <Connect>
     <Stream url="${escapeXmlAttribute(wsUrl)}">
       <Parameter name="tenant_id" value="${escapeXmlAttribute(tenantId)}" />
       <Parameter name="store_id" value="${escapeXmlAttribute(storeId)}" />
       <Parameter name="language" value="${escapeXmlAttribute(language)}" />
+      <Parameter name="caller_phone" value="${escapeXmlAttribute(callerPhone)}" />
     </Stream>
   </Connect>
   <Say>Sorry, the ordering assistant is not available right now. Please call back in a few minutes.</Say>
@@ -348,6 +373,38 @@ export function buildServer() {
 </Response>
     `;
     reply.type("text/xml").send(twiml.trim());
+  });
+
+  // ─── Twilio Call Recording Webhook Callback ─────────────────
+
+  app.post("/api/telephony/twilio/recording", async (request, reply) => {
+    const body = (request.body ?? {}) as Record<string, string>;
+    const callSid = body.CallSid;
+    const recordingUrl = body.RecordingUrl;
+
+    logger.info({ call_id: callSid, recording_url: recordingUrl }, "Received Twilio call recording webhook");
+
+    if (callSid && recordingUrl && mongo.repository) {
+      try {
+        const repo = await mongo.repository;
+        const db = await getMongoDb(env.MONGODB_URI, env.MONGODB_DB);
+        
+        const result = await db.collection("call_sessions").updateOne(
+          { call_id: callSid },
+          { $set: { recording_url: recordingUrl, updated_at: new Date().toISOString() } }
+        );
+
+        if (result.matchedCount > 0) {
+          logger.info({ call_id: callSid, recording_url: recordingUrl }, "Call session updated with recording URL successfully");
+        } else {
+          logger.warn({ call_id: callSid }, "No matching call session found to update with recording URL");
+        }
+      } catch (error) {
+        logger.error({ err: error, call_id: callSid }, "Failed to update call session with recording URL in MongoDB");
+      }
+    }
+
+    reply.send({ ok: true });
   });
 
   // ─── Voice WebSockets ───────────────────────────────────────

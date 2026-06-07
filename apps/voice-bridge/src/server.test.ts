@@ -176,6 +176,43 @@ describe("voice bridge", () => {
       await app.close();
     }
   });
+
+  it("parses the From field in urlencoded bodies and outputs it in Connect TwiML", async () => {
+    const { buildServer } = await importServer({ GEMINI_API_KEY: "test-key" });
+    const app = buildServer();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/telephony/twilio/inbound",
+      headers: {
+        host: "voice.example.com",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      payload: "From=%2B1234567890&CallSid=CAtest"
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain('name="caller_phone" value="+1234567890"');
+    await app.close();
+  });
+
+  it("handles the recording status callback and returns success", async () => {
+    const { buildServer } = await importServer({ GEMINI_API_KEY: "test-key" });
+    const app = buildServer();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/telephony/twilio/recording",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      payload: "CallSid=CAtest&RecordingUrl=https%3A%2F%2Fapi.twilio.com%2Frecordings%2F123"
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ ok: true });
+    await app.close();
+  });
 });
 
 async function importServer(overrides: EnvOverrides = {}) {

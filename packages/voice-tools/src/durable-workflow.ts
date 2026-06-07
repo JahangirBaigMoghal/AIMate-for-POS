@@ -346,6 +346,7 @@ export class DurableVoiceWorkflowStore implements VoiceWorkflowStore {
         language: session.language,
         prompt_hash: session.prompt_hash,
         payment_type: session.payment_type,
+        recording_url: session.recording_url,
         started_at: session.created_at,
         updated_at: session.updated_at,
         ended_at: session.status === "ENDED" ? session.updated_at : undefined
