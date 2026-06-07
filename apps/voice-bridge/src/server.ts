@@ -107,6 +107,9 @@ export function buildServer() {
   if (env.REDIS_URL) {
     try {
       const redis = new Redis(env.REDIS_URL);
+      redis.on("error", (err) => {
+        logger.error({ err }, "Redis background connection error");
+      });
       tokenStore = new RedisTokenStore(redis);
       lockManager = new RedisLockManager(redis);
       logger.info({ redis_url: env.REDIS_URL }, "Redis components initialized (distributed locks and token store active)");

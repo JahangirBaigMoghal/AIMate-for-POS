@@ -3,7 +3,12 @@ import { MongoClient, type Db } from "mongodb";
 let client: MongoClient | undefined;
 
 export async function getMongoDb(uri: string, dbName: string): Promise<Db> {
-  client ??= new MongoClient(uri);
+  if (!client) {
+    client = new MongoClient(uri);
+    client.on("error", (err) => {
+      console.error("MongoDB background client error:", err);
+    });
+  }
   await client.connect();
   return client.db(dbName);
 }
