@@ -1,4 +1,4 @@
-// Twilio call recording redirect proxy - trigger Vercel rebuild for env variables
+// Twilio call recording redirect proxy - trigger Vercel rebuild for env variables v2
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
