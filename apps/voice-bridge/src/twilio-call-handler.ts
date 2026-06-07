@@ -202,6 +202,11 @@ export class TwilioCallHandler {
       void this.failAssistantStream("gemini_error");
     });
 
+    this.gemini.on("closed", () => {
+      this.log.warn("Gemini session closed unexpectedly on Twilio call");
+      void this.failAssistantStream("gemini_closed");
+    });
+
     try {
       await this.gemini.connect();
     } catch (error) {

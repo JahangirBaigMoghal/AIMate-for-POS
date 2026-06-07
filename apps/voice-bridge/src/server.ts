@@ -182,7 +182,15 @@ export function buildServer() {
   });
 
   const geminiApiKey = env.GEMINI_API_KEY;
-  const geminiModel = env.GEMINI_LIVE_MODEL || "gemini-2.0-flash-exp";
+  const rawModel = env.GEMINI_LIVE_MODEL?.trim();
+  const geminiModel =
+    !rawModel ||
+    rawModel === "gemini-2.0-flash-live-001" ||
+    rawModel === "gemini-2.0-flash-exp" ||
+    rawModel === "gemini-live-2.5-flash-preview" ||
+    rawModel === "gemini-3.1-flash-live-preview"
+      ? "gemini-2.5-flash-native-audio-preview-12-2025"
+      : rawModel;
 
   // ─── Health / Readiness ─────────────────────────────────────
 

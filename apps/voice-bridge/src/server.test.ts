@@ -152,6 +152,30 @@ describe("voice bridge", () => {
     expect(response.statusCode).toBe(401);
     await app.close();
   });
+
+  it("overrides deprecated/preview/empty models with the stable voice preview model", async () => {
+    const testCases = [
+      { input: "gemini-2.0-flash-exp", expected: "gemini-2.5-flash-native-audio-preview-12-2025" },
+      { input: "gemini-2.0-flash-live-001", expected: "gemini-2.5-flash-native-audio-preview-12-2025" },
+      { input: "gemini-live-2.5-flash-preview", expected: "gemini-2.5-flash-native-audio-preview-12-2025" },
+      { input: "gemini-3.1-flash-live-preview", expected: "gemini-2.5-flash-native-audio-preview-12-2025" },
+      { input: "", expected: "gemini-2.5-flash-native-audio-preview-12-2025" },
+      { input: "   ", expected: "gemini-2.5-flash-native-audio-preview-12-2025" },
+      { input: "custom-allowed-model", expected: "custom-allowed-model" }
+    ];
+
+    for (const { input, expected } of testCases) {
+      const { buildServer } = await importServer({
+        GEMINI_API_KEY: "test-key",
+        GEMINI_LIVE_MODEL: input
+      });
+      const app = buildServer();
+      const response = await app.inject({ method: "GET", url: "/ready" });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().model).toBe(expected);
+      await app.close();
+    }
+  });
 });
 
 async function importServer(overrides: EnvOverrides = {}) {
