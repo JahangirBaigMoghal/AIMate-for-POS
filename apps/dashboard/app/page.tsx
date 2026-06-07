@@ -71,6 +71,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCall, setSelectedCall] = useState<any>(null);
   const [resolvedRecordingUrl, setResolvedRecordingUrl] = useState<string | null>(null);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
   
   // Settings Form State
   const [settingsForm, setSettingsForm] = useState({
@@ -121,16 +122,30 @@ export default function Dashboard() {
   useEffect(() => {
     if (selectedCall?.recording_url) {
       setResolvedRecordingUrl(null);
+      setRecordingError(null);
       fetch(`/api/dashboard/recording?url=${encodeURIComponent(selectedCall.recording_url)}`)
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(data => {
+              throw new Error(data.error || `Server returned status ${res.status}`);
+            });
+          }
+          return res.json();
+        })
         .then(data => {
-          if (data.url) setResolvedRecordingUrl(data.url);
+          if (data.url) {
+            setResolvedRecordingUrl(data.url);
+          } else {
+            throw new Error("No URL returned from server");
+          }
         })
         .catch(err => {
           console.error("Error resolving recording url:", err);
+          setRecordingError(err.message || "Failed to load recording");
         });
     } else {
       setResolvedRecordingUrl(null);
+      setRecordingError(null);
     }
   }, [selectedCall]);
 
@@ -751,6 +766,10 @@ export default function Dashboard() {
                   <strong style={{ display: "block", marginBottom: "8px", fontSize: "13px" }}>Call Recording Playback</strong>
                   {resolvedRecordingUrl ? (
                     <audio src={resolvedRecordingUrl} controls style={{ width: "100%" }} />
+                  ) : recordingError ? (
+                    <div style={{ fontSize: "13px", color: "var(--error)", wordBreak: "break-all" }}>
+                      Error: {recordingError}
+                    </div>
                   ) : (
                     <div style={{ fontSize: "13px", color: "var(--muted)" }}>Loading recording...</div>
                   )}

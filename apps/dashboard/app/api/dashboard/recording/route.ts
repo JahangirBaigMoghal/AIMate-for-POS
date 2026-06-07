@@ -26,12 +26,22 @@ export async function GET(request: Request) {
       redirect: "manual"
     });
 
-    const redirectUrl = res.headers.get("location");
-    if (redirectUrl) {
-      return NextResponse.json({ url: redirectUrl });
+    if (res.status >= 300 && res.status < 400) {
+      const redirectUrl = res.headers.get("location");
+      if (redirectUrl) {
+        return NextResponse.json({ url: redirectUrl });
+      }
     }
 
-    return NextResponse.json({ url: recordingUrl });
+    let errorMessage = `Twilio returned status ${res.status}: ${res.statusText || "No redirect found"}`;
+    try {
+      const responseText = await res.text();
+      if (responseText) {
+        errorMessage += ` - ${responseText.substring(0, 150)}`;
+      }
+    } catch (_) {}
+
+    return NextResponse.json({ error: errorMessage }, { status: res.status >= 400 && res.status < 600 ? res.status : 500 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
