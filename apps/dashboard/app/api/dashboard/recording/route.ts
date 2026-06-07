@@ -18,14 +18,6 @@ export async function GET(request: Request) {
   const match = recordingUrl.match(/\/Accounts\/(AC[a-fA-F0-9]{32})/);
   const urlAccountSid = match ? match[1] : null;
 
-  if (urlAccountSid && accountSid !== urlAccountSid) {
-    const configSidMasked = `${accountSid.substring(0, 6)}...${accountSid.substring(accountSid.length - 4)}`;
-    const urlSidMasked = `${urlAccountSid.substring(0, 6)}...${urlAccountSid.substring(urlAccountSid.length - 4)}`;
-    return NextResponse.json({ 
-      error: `Twilio Account SID mismatch. Configured on Vercel: ${configSidMasked}, but recording belongs to: ${urlSidMasked}. Please verify your Vercel Environment Variables.` 
-    }, { status: 400 });
-  }
-
   try {
     const auth = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
     
@@ -53,7 +45,8 @@ export async function GET(request: Request) {
     } catch (_) {}
 
     const configSidMasked = `${accountSid.substring(0, 6)}...${accountSid.substring(accountSid.length - 4)}`;
-    errorMessage += ` [Diagnostics: SID=${configSidMasked}, AuthTokenLen=${authToken.length}]`;
+    const urlSidMasked = urlAccountSid ? `${urlAccountSid.substring(0, 6)}...${urlAccountSid.substring(urlAccountSid.length - 4)}` : "none";
+    errorMessage += ` [Diagnostics: Config SID=${configSidMasked}, URL SID=${urlSidMasked}, Match=${accountSid === urlAccountSid ? "yes" : "no"}, AuthTokenLen=${authToken.length}]`;
 
     return NextResponse.json({ error: errorMessage }, { status: res.status >= 400 && res.status < 600 ? res.status : 500 });
   } catch (error: any) {
