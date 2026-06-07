@@ -19,8 +19,50 @@ import {
   Search,
   ShoppingCart,
   Eye,
-  Info
+  Info,
+  Store,
+  Workflow
 } from "lucide-react";
+
+const targetSLOMetrics = [
+  { label: "Call Answer SLO", value: "99.0%", status: "MVP target" },
+  { label: "Order Accuracy", value: "97%+", status: "Guardrail target" },
+  { label: "Handoff Rate", value: "<25%", status: "MVP target" },
+  { label: "Duplicate Orders", value: "0", status: "Hard requirement" }
+];
+
+const workstreams = [
+  {
+    icon: Bot,
+    title: "Voice Runtime",
+    text: "Vertex AI Gemini Live primary, OpenAI Realtime standby, Render WebSocket bridge."
+  },
+  {
+    icon: Store,
+    title: "FoodHub Grounding",
+    text: "All orders, prices, menu choices, coupons, and statuses are grounded in FoodHub data."
+  },
+  {
+    icon: Database,
+    title: "Menu Intelligence",
+    text: "Separate menu index for live item IDs, aliases, modifiers, stock, and multilingual matching."
+  },
+  {
+    icon: CreditCard,
+    title: "Payment Safety",
+    text: "Secure payment links only; no card details over voice; reconciliation tracks stale payments."
+  },
+  {
+    icon: Headphones,
+    title: "Warm Handoff",
+    text: "Staff screen-pop payload includes cart, caller, language, issue, confidence, and next action."
+  },
+  {
+    icon: ShieldCheck,
+    title: "Guardrails",
+    text: "Closed-world menu/pricing, prompt governance, tenant isolation, audit logs, and kill switches."
+  }
+];
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "calls" | "orders" | "webhooks" | "settings">("overview");
@@ -257,6 +299,65 @@ export default function Dashboard() {
               <strong>System Notice:</strong> Active call state is securely backed up in MongoDB. If the server scales or restarts, calls can automatically reconnect and recover their carts transparently.
             </p>
           </div>
+
+          {/* Restored target metrics section */}
+          <div style={{ marginTop: "32px", marginBottom: "32px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <Activity size={22} style={{ color: "var(--accent)" }} />
+              Target SLAs & SLOs
+            </h2>
+            <div className="metrics">
+              {targetSLOMetrics.map((metric) => (
+                <article className="metric" key={metric.label}>
+                  <span>{metric.label}</span>
+                  <strong style={{ margin: "12px 0 4px", fontSize: "36px", fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.03em" }}>{metric.value}</strong>
+                  <small style={{ color: "var(--accent-2)" }}>{metric.status}</small>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {/* Restored workstreams section */}
+          <div style={{ marginTop: "32px", marginBottom: "32px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <Bot size={22} style={{ color: "var(--accent)" }} />
+              Enterprise Workstreams
+            </h2>
+            <div className="grid">
+              {workstreams.map((item) => (
+                <article className="panel" key={item.title} style={{ marginBottom: 0 }}>
+                  <item.icon size={24} aria-hidden="true" style={{ color: "var(--accent)" }} />
+                  <h2 style={{ margin: "14px 0 8px", fontSize: "18px" }}>{item.title}</h2>
+                  <p style={{ margin: 0, lineHeight: "1.55", color: "var(--muted)" }}>{item.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {/* Restored next build milestones section */}
+          <section className="ops-band" aria-label="Operational readiness" style={{ marginBottom: "32px" }}>
+            <div>
+              <Workflow size={24} aria-hidden="true" style={{ color: "var(--accent)" }} />
+              <h2>Next build milestones</h2>
+            </div>
+            <ol>
+              <li>Connect FoodHub credentials and staging store.</li>
+              <li>Seed MongoDB with API RAG and live menu snapshots.</li>
+              <li>Connect telephony media stream to the Render voice bridge.</li>
+              <li>Run voice regression tests before production canary.</li>
+            </ol>
+          </section>
+
+          {/* Restored credential warning box */}
+          {(!credentials.mongodb || !credentials.gemini || !credentials.twilio || !credentials.stripe || !credentials.foodhub) && (
+            <section className="warning" aria-label="Credential status">
+              <AlertTriangle size={22} aria-hidden="true" />
+              <p>
+                Live API actions stay disabled until FoodHub, MongoDB, payment, telephony, and voice
+                provider credentials are configured in the deployment environment.
+              </p>
+            </section>
+          )}
         </section>
       )}
 
@@ -528,7 +629,7 @@ export default function Dashboard() {
             </h4>
             
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px dashed var(--line)", padding: "16px", borderRadius: "8px", opacity: credentials.foodhub ? 1 : 0.6 }}>
+              <div style={{ background: "var(--bg)", border: "1px dashed var(--line)", padding: "16px", borderRadius: "8px", opacity: credentials.foodhub ? 1 : 0.6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <strong style={{ fontSize: "14px" }}>FoodHub Synchronization</strong>
                   <span className={`badge ${credentials.foodhub ? "badge-success" : "badge-warn"}`}>
@@ -543,7 +644,7 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px dashed var(--line)", padding: "16px", borderRadius: "8px", opacity: credentials.stripe ? 1 : 0.6 }}>
+              <div style={{ background: "var(--bg)", border: "1px dashed var(--line)", padding: "16px", borderRadius: "8px", opacity: credentials.stripe ? 1 : 0.6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <strong style={{ fontSize: "14px" }}>Payment Gateway Controls</strong>
                   <span className={`badge ${credentials.stripe ? "badge-success" : "badge-warn"}`}>
